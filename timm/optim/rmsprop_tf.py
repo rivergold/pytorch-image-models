@@ -44,9 +44,16 @@ class RMSpropTF(Optimizer):
             update as per defaults in Tensorflow
 
     """
-
-    def __init__(self, params, lr=1e-2, alpha=0.9, eps=1e-10, weight_decay=0, momentum=0., centered=False,
-                 decoupled_decay=False, lr_in_momentum=True):
+    def __init__(self,
+                 params,
+                 lr=1e-2,
+                 alpha=0.9,
+                 eps=1e-10,
+                 weight_decay=0,
+                 momentum=0.,
+                 centered=False,
+                 decoupled_decay=False,
+                 lr_in_momentum=True):
         if not 0.0 <= lr:
             raise ValueError("Invalid learning rate: {}".format(lr))
         if not 0.0 <= eps:
@@ -54,12 +61,19 @@ class RMSpropTF(Optimizer):
         if not 0.0 <= momentum:
             raise ValueError("Invalid momentum value: {}".format(momentum))
         if not 0.0 <= weight_decay:
-            raise ValueError("Invalid weight_decay value: {}".format(weight_decay))
+            raise ValueError(
+                "Invalid weight_decay value: {}".format(weight_decay))
         if not 0.0 <= alpha:
             raise ValueError("Invalid alpha value: {}".format(alpha))
 
-        defaults = dict(lr=lr, momentum=momentum, alpha=alpha, eps=eps, centered=centered, weight_decay=weight_decay,
-                        decoupled_decay=decoupled_decay, lr_in_momentum=lr_in_momentum)
+        defaults = dict(lr=lr,
+                        momentum=momentum,
+                        alpha=alpha,
+                        eps=eps,
+                        centered=centered,
+                        weight_decay=weight_decay,
+                        decoupled_decay=decoupled_decay,
+                        lr_in_momentum=lr_in_momentum)
         super(RMSpropTF, self).__init__(params, defaults)
 
     def __setstate__(self, state):
@@ -85,13 +99,15 @@ class RMSpropTF(Optimizer):
                     continue
                 grad = p.grad.data
                 if grad.is_sparse:
-                    raise RuntimeError('RMSprop does not support sparse gradients')
+                    raise RuntimeError(
+                        'RMSprop does not support sparse gradients')
                 state = self.state[p]
 
                 # State initialization
                 if len(state) == 0:
                     state['step'] = 0
-                    state['square_avg'] = torch.ones_like(p.data)  # PyTorch inits to zero
+                    state['square_avg'] = torch.ones_like(
+                        p.data)  # PyTorch inits to zero
                     if group['momentum'] > 0:
                         state['momentum_buffer'] = torch.zeros_like(p.data)
                     if group['centered']:
@@ -116,15 +132,18 @@ class RMSpropTF(Optimizer):
                     grad_avg = state['grad_avg']
                     grad_avg.add_(one_minus_alpha, grad - grad_avg)
                     # grad_avg.mul_(alpha).add_(1 - alpha, grad)  # PyTorch original
-                    avg = square_avg.addcmul(-1, grad_avg, grad_avg).add(group['eps']).sqrt_()  # eps moved in sqrt
+                    avg = square_avg.addcmul(-1, grad_avg, grad_avg).add(
+                        group['eps']).sqrt_()  # eps moved in sqrt
                 else:
-                    avg = square_avg.add(group['eps']).sqrt_()  # eps moved in sqrt
+                    avg = square_avg.add(
+                        group['eps']).sqrt_()  # eps moved in sqrt
 
                 if group['momentum'] > 0:
                     buf = state['momentum_buffer']
                     # Tensorflow accumulates the LR scaling in the momentum buffer
                     if 'lr_in_momentum' in group and group['lr_in_momentum']:
-                        buf.mul_(group['momentum']).addcdiv_(group['lr'], grad, avg)
+                        buf.mul_(group['momentum']).addcdiv_(
+                            group['lr'], grad, avg)
                         p.data.add_(-buf)
                     else:
                         # PyTorch scales the param update by LR

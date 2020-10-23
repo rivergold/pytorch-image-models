@@ -7,12 +7,17 @@ import re
 import fnmatch
 from collections import defaultdict
 
-__all__ = ['list_models', 'is_model', 'model_entrypoint', 'list_modules', 'is_model_in_modules']
+__all__ = [
+    'list_models', 'is_model', 'model_entrypoint', 'list_modules',
+    'is_model_in_modules'
+]
 
-_module_to_models = defaultdict(set)  # dict of sets to check membership of model in module
+_module_to_models = defaultdict(
+    set)  # dict of sets to check membership of model in module
 _model_to_module = {}  # mapping of model names to module names
 _model_entrypoints = {}  # mapping of model names to entrypoint fns
-_model_has_pretrained = set()  # set of model names that have pretrained weight url present
+_model_has_pretrained = set(
+)  # set of model names that have pretrained weight url present
 
 
 def register_model(fn):
@@ -36,14 +41,18 @@ def register_model(fn):
     if hasattr(mod, 'default_cfgs') and model_name in mod.default_cfgs:
         # this will catch all models that have entrypoint matching cfg key, but miss any aliasing
         # entrypoints or non-matching combos
-        has_pretrained = 'url' in mod.default_cfgs[model_name] and 'http' in mod.default_cfgs[model_name]['url']
+        has_pretrained = 'url' in mod.default_cfgs[
+            model_name] and 'http' in mod.default_cfgs[model_name]['url']
     if has_pretrained:
         _model_has_pretrained.add(model_name)
     return fn
 
 
 def _natural_key(string_):
-    return [int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_.lower())]
+    return [
+        int(s) if s.isdigit() else s
+        for s in re.split(r'(\d+)', string_.lower())
+    ]
 
 
 def list_models(filter='', module='', pretrained=False, exclude_filters=''):
@@ -104,4 +113,3 @@ def is_model_in_modules(model_name, module_names):
     """
     assert isinstance(module_names, (tuple, list, set))
     return any(model_name in _module_to_models[n] for n in module_names)
-

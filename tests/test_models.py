@@ -24,7 +24,8 @@ MAX_FWD_FEAT_SIZE = 448
 
 
 @pytest.mark.timeout(120)
-@pytest.mark.parametrize('model_name', list_models(exclude_filters=EXCLUDE_FILTERS))
+@pytest.mark.parametrize('model_name',
+                         list_models(exclude_filters=EXCLUDE_FILTERS))
 @pytest.mark.parametrize('batch_size', [1])
 def test_model_forward(model_name, batch_size):
     """Run a single forward pass with each model"""
@@ -43,7 +44,8 @@ def test_model_forward(model_name, batch_size):
 
 
 @pytest.mark.timeout(120)
-@pytest.mark.parametrize('model_name', list_models(exclude_filters=EXCLUDE_FILTERS))
+@pytest.mark.parametrize('model_name',
+                         list_models(exclude_filters=EXCLUDE_FILTERS))
 @pytest.mark.parametrize('batch_size', [2])
 def test_model_backward(model_name, batch_size):
     """Run a single forward pass with each model"""
@@ -60,7 +62,8 @@ def test_model_backward(model_name, batch_size):
     outputs.mean().backward()
     for n, x in model.named_parameters():
         assert x.grad is not None, f'No gradient for {n}'
-    num_grad = sum([x.grad.numel() for x in model.parameters() if x.grad is not None])
+    num_grad = sum(
+        [x.grad.numel() for x in model.parameters() if x.grad is not None])
 
     assert outputs.shape[-1] == 42
     assert num_params == num_grad, 'Some parameters are missing gradients'
@@ -90,7 +93,8 @@ def test_model_default_cfgs(model_name, batch_size):
 
         # test forward_features (always unpooled)
         outputs = model.forward_features(input_tensor)
-        assert outputs.shape[-1] == pool_size[-1] and outputs.shape[-2] == pool_size[-2]
+        assert outputs.shape[-1] == pool_size[-1] and outputs.shape[
+            -2] == pool_size[-2]
 
         # test forward after deleting the classifier, output should be poooled, size(-1) == model.num_features
         model.reset_classifier(0)
@@ -99,19 +103,24 @@ def test_model_default_cfgs(model_name, batch_size):
         assert outputs.shape[-1] == model.num_features
 
         # test model forward without pooling and classifier
-        model.reset_classifier(0, '')  # reset classifier and set global pooling to pass-through
+        model.reset_classifier(
+            0, '')  # reset classifier and set global pooling to pass-through
         outputs = model.forward(input_tensor)
         assert len(outputs.shape) == 4
         if not isinstance(model, timm.models.MobileNetV3):
             # FIXME mobilenetv3 forward_features vs removed pooling differ
-            assert outputs.shape[-1] == pool_size[-1] and outputs.shape[-2] == pool_size[-2]
+            assert outputs.shape[-1] == pool_size[-1] and outputs.shape[
+                -2] == pool_size[-2]
 
     # check classifier and first convolution names match those in default_cfg
-    assert classifier + ".weight" in state_dict.keys(), f'{classifier} not in model params'
-    assert first_conv + ".weight" in state_dict.keys(), f'{first_conv} not in model params'
+    assert classifier + ".weight" in state_dict.keys(
+    ), f'{classifier} not in model params'
+    assert first_conv + ".weight" in state_dict.keys(
+    ), f'{first_conv} not in model params'
 
 
 if 'GITHUB_ACTIONS' not in os.environ:
+
     @pytest.mark.timeout(120)
     @pytest.mark.parametrize('model_name', list_models(pretrained=True))
     @pytest.mark.parametrize('batch_size', [1])
@@ -127,21 +136,28 @@ if 'GITHUB_ACTIONS' not in os.environ:
         """Create that pretrained weights load when features_only==True."""
         create_model(model_name, pretrained=True, features_only=True)
 
+
 EXCLUDE_JIT_FILTERS = [
-    '*iabn*', 'tresnet*',  # models using inplace abn unlikely to ever be scriptable
-    'dla*', 'hrnet*',  # hopefully fix at some point
+    '*iabn*',
+    'tresnet*',  # models using inplace abn unlikely to ever be scriptable
+    'dla*',
+    'hrnet*',  # hopefully fix at some point
 ]
 
 
 @pytest.mark.timeout(120)
-@pytest.mark.parametrize('model_name', list_models(exclude_filters=EXCLUDE_FILTERS + EXCLUDE_JIT_FILTERS))
+@pytest.mark.parametrize('model_name',
+                         list_models(exclude_filters=EXCLUDE_FILTERS +
+                                     EXCLUDE_JIT_FILTERS))
 @pytest.mark.parametrize('batch_size', [1])
 def test_model_forward_torchscript(model_name, batch_size):
     """Run a single forward pass with each model"""
     with set_scriptable(True):
         model = create_model(model_name, pretrained=False)
     model.eval()
-    input_size = (3, 128, 128)  # jit compile is already a bit slow and we've tested normal res already...
+    input_size = (
+        3, 128, 128
+    )  # jit compile is already a bit slow and we've tested normal res already...
     model = torch.jit.script(model)
     outputs = model(torch.randn((batch_size, *input_size)))
 
@@ -158,15 +174,21 @@ if 'GITHUB_ACTIONS' in os.environ:  # and 'Linux' in platform.system():
 
 
 @pytest.mark.timeout(120)
-@pytest.mark.parametrize('model_name', list_models(exclude_filters=EXCLUDE_FILTERS + EXCLUDE_FEAT_FILTERS))
+@pytest.mark.parametrize('model_name',
+                         list_models(exclude_filters=EXCLUDE_FILTERS +
+                                     EXCLUDE_FEAT_FILTERS))
 @pytest.mark.parametrize('batch_size', [1])
 def test_model_forward_features(model_name, batch_size):
     """Run a single forward pass with each model in feature extraction mode"""
     model = create_model(model_name, pretrained=False, features_only=True)
     model.eval()
     expected_channels = model.feature_info.channels()
-    assert len(expected_channels) >= 4  # all models here should have at least 4 feature levels by default, some 5 or 6
-    input_size = (3, 96, 96)  # jit compile is already a bit slow and we've tested normal res already...
+    assert len(
+        expected_channels
+    ) >= 4  # all models here should have at least 4 feature levels by default, some 5 or 6
+    input_size = (
+        3, 96, 96
+    )  # jit compile is already a bit slow and we've tested normal res already...
     outputs = model(torch.randn((batch_size, *input_size)))
     assert len(expected_channels) == len(outputs)
     for e, o in zip(expected_channels, outputs):

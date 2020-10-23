@@ -10,14 +10,19 @@ import math
 import torch
 
 
-def _get_pixels(per_pixel, rand_color, patch_size, dtype=torch.float32, device='cuda'):
+def _get_pixels(per_pixel,
+                rand_color,
+                patch_size,
+                dtype=torch.float32,
+                device='cuda'):
     # NOTE I've seen CUDA illegal memory access errors being caused by the normal_()
     # paths, flip the order so normal is run on CPU if this becomes a problem
     # Issue has been fixed in master https://github.com/pytorch/pytorch/issues/19508
     if per_pixel:
         return torch.empty(patch_size, dtype=dtype, device=device).normal_()
     elif rand_color:
-        return torch.empty((patch_size[0], 1, 1), dtype=dtype, device=device).normal_()
+        return torch.empty((patch_size[0], 1, 1), dtype=dtype,
+                           device=device).normal_()
     else:
         return torch.zeros((patch_size[0], 1, 1), dtype=dtype, device=device)
 
@@ -41,11 +46,17 @@ class RandomErasing:
         max_count: maximum number of erasing blocks per image, area per box is scaled by count.
             per-image count is randomly chosen between 1 and this value.
     """
-
-    def __init__(
-            self,
-            probability=0.5, min_area=0.02, max_area=1/3, min_aspect=0.3, max_aspect=None,
-            mode='const', min_count=1, max_count=None, num_splits=0, device='cuda'):
+    def __init__(self,
+                 probability=0.5,
+                 min_area=0.02,
+                 max_area=1 / 3,
+                 min_aspect=0.3,
+                 max_aspect=None,
+                 mode='const',
+                 min_count=1,
+                 max_count=None,
+                 num_splits=0,
+                 device='cuda'):
         self.probability = probability
         self.min_area = min_area
         self.max_area = max_area
@@ -73,7 +84,8 @@ class RandomErasing:
             random.randint(self.min_count, self.max_count)
         for _ in range(count):
             for attempt in range(10):
-                target_area = random.uniform(self.min_area, self.max_area) * area / count
+                target_area = random.uniform(self.min_area,
+                                             self.max_area) * area / count
                 aspect_ratio = math.exp(random.uniform(*self.log_aspect_ratio))
                 h = int(round(math.sqrt(target_area * aspect_ratio)))
                 w = int(round(math.sqrt(target_area / aspect_ratio)))
@@ -81,8 +93,10 @@ class RandomErasing:
                     top = random.randint(0, img_h - h)
                     left = random.randint(0, img_w - w)
                     img[:, top:top + h, left:left + w] = _get_pixels(
-                        self.per_pixel, self.rand_color, (chan, h, w),
-                        dtype=dtype, device=self.device)
+                        self.per_pixel,
+                        self.rand_color, (chan, h, w),
+                        dtype=dtype,
+                        device=self.device)
                     break
 
     def __call__(self, input):

@@ -16,8 +16,12 @@ from .evo_norm import EvoNormBatch2d, EvoNormSample2d
 from .norm_act import BatchNormAct2d, GroupNormAct
 from .inplace_abn import InplaceAbn
 
-_NORM_ACT_TYPES = {BatchNormAct2d, GroupNormAct, EvoNormBatch2d, EvoNormSample2d, InplaceAbn}
-_NORM_ACT_REQUIRES_ARG = {BatchNormAct2d, GroupNormAct, InplaceAbn}  # requires act_layer arg to define act type
+_NORM_ACT_TYPES = {
+    BatchNormAct2d, GroupNormAct, EvoNormBatch2d, EvoNormSample2d, InplaceAbn
+}
+_NORM_ACT_REQUIRES_ARG = {BatchNormAct2d, GroupNormAct, InplaceAbn
+                          }  # requires act_layer arg to define act type
+
 
 def get_norm_act_layer(layer_class):
     layer_class = layer_class.replace('_', '').lower()
@@ -36,7 +40,11 @@ def get_norm_act_layer(layer_class):
     return layer
 
 
-def create_norm_act(layer_type, num_features, apply_act=True, jit=False, **kwargs):
+def create_norm_act(layer_type,
+                    num_features,
+                    apply_act=True,
+                    jit=False,
+                    **kwargs):
     layer_parts = layer_type.split('-')  # e.g. batchnorm-leaky_relu
     assert len(layer_parts) in (1, 2)
     layer = get_norm_act_layer(layer_parts[0])
@@ -48,14 +56,16 @@ def create_norm_act(layer_type, num_features, apply_act=True, jit=False, **kwarg
 
 
 def convert_norm_act_type(norm_layer, act_layer, norm_kwargs=None):
-    assert isinstance(norm_layer, (type, str,  types.FunctionType, functools.partial))
-    assert act_layer is None or isinstance(act_layer, (type, str, types.FunctionType, functools.partial))
+    assert isinstance(norm_layer,
+                      (type, str, types.FunctionType, functools.partial))
+    assert act_layer is None or isinstance(
+        act_layer, (type, str, types.FunctionType, functools.partial))
     norm_act_args = norm_kwargs.copy() if norm_kwargs else {}
     if isinstance(norm_layer, str):
         norm_act_layer = get_norm_act_layer(norm_layer)
     elif norm_layer in _NORM_ACT_TYPES:
         norm_act_layer = norm_layer
-    elif isinstance(norm_layer,  (types.FunctionType, functools.partial)):
+    elif isinstance(norm_layer, (types.FunctionType, functools.partial)):
         # assuming this is a lambda/fn/bound partial that creates norm_act layer
         norm_act_layer = norm_layer
     else:

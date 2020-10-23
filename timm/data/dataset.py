@@ -14,21 +14,29 @@ import torch
 import tarfile
 from PIL import Image
 
-
 IMG_EXTENSIONS = ['.png', '.jpg', '.jpeg']
 
 
 def natural_key(string_):
     """See http://www.codinghorror.com/blog/archives/001018.html"""
-    return [int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_.lower())]
+    return [
+        int(s) if s.isdigit() else s
+        for s in re.split(r'(\d+)', string_.lower())
+    ]
 
 
-def find_images_and_targets(folder, types=IMG_EXTENSIONS, class_to_idx=None, leaf_name_only=True, sort=True):
+def find_images_and_targets(folder,
+                            types=IMG_EXTENSIONS,
+                            class_to_idx=None,
+                            leaf_name_only=True,
+                            sort=True):
     labels = []
     filenames = []
     for root, subdirs, files in os.walk(folder, topdown=False):
         rel_path = os.path.relpath(root, folder) if (root != folder) else ''
-        label = os.path.basename(rel_path) if leaf_name_only else rel_path.replace(os.path.sep, '_')
+        label = os.path.basename(
+            rel_path) if leaf_name_only else rel_path.replace(
+                os.path.sep, '_')
         for f in files:
             base, ext = os.path.splitext(f)
             if ext.lower() in types:
@@ -39,9 +47,12 @@ def find_images_and_targets(folder, types=IMG_EXTENSIONS, class_to_idx=None, lea
         unique_labels = set(labels)
         sorted_labels = list(sorted(unique_labels, key=natural_key))
         class_to_idx = {c: idx for idx, c in enumerate(sorted_labels)}
-    images_and_targets = [(f, class_to_idx[l]) for f, l in zip(filenames, labels) if l in class_to_idx]
+    images_and_targets = [(f, class_to_idx[l])
+                          for f, l in zip(filenames, labels)
+                          if l in class_to_idx]
     if sort:
-        images_and_targets = sorted(images_and_targets, key=lambda k: natural_key(k[0]))
+        images_and_targets = sorted(images_and_targets,
+                                    key=lambda k: natural_key(k[0]))
     return images_and_targets, class_to_idx
 
 
@@ -49,7 +60,9 @@ def load_class_map(filename, root=''):
     class_map_path = filename
     if not os.path.exists(class_map_path):
         class_map_path = os.path.join(root, filename)
-        assert os.path.exists(class_map_path), 'Cannot locate specified class map file (%s)' % filename
+        assert os.path.exists(
+            class_map_path
+        ), 'Cannot locate specified class map file (%s)' % filename
     class_map_ext = os.path.splitext(filename)[-1].lower()
     if class_map_ext == '.txt':
         with open(class_map_path) as f:
@@ -60,21 +73,17 @@ def load_class_map(filename, root=''):
 
 
 class Dataset(data.Dataset):
-
-    def __init__(
-            self,
-            root,
-            load_bytes=False,
-            transform=None,
-            class_map=''):
+    def __init__(self, root, load_bytes=False, transform=None, class_map=''):
 
         class_to_idx = None
         if class_map:
             class_to_idx = load_class_map(class_map, root)
-        images, class_to_idx = find_images_and_targets(root, class_to_idx=class_to_idx)
+        images, class_to_idx = find_images_and_targets(
+            root, class_to_idx=class_to_idx)
         if len(images) == 0:
-            raise RuntimeError(f'Found 0 images in subfolders of {root}. '
-                               f'Supported image extensions are {", ".join(IMG_EXTENSIONS)}')
+            raise RuntimeError(
+                f'Found 0 images in subfolders of {root}. '
+                f'Supported image extensions are {", ".join(IMG_EXTENSIONS)}')
         self.root = root
         self.samples = images
         self.imgs = self.samples  # torchvision ImageFolder compat
@@ -84,7 +93,8 @@ class Dataset(data.Dataset):
 
     def __getitem__(self, index):
         path, target = self.samples[index]
-        img = open(path, 'rb').read() if self.load_bytes else Image.open(path).convert('RGB')
+        img = open(path, 'rb').read() if self.load_bytes else Image.open(
+            path).convert('RGB')
         if self.transform is not None:
             img = self.transform(img)
         if target is None:
@@ -127,14 +137,15 @@ def _extract_tar_info(tarfile, class_to_idx=None, sort=True):
         unique_labels = set(labels)
         sorted_labels = list(sorted(unique_labels, key=natural_key))
         class_to_idx = {c: idx for idx, c in enumerate(sorted_labels)}
-    tarinfo_and_targets = [(f, class_to_idx[l]) for f, l in zip(files, labels) if l in class_to_idx]
+    tarinfo_and_targets = [(f, class_to_idx[l]) for f, l in zip(files, labels)
+                           if l in class_to_idx]
     if sort:
-        tarinfo_and_targets = sorted(tarinfo_and_targets, key=lambda k: natural_key(k[0].path))
+        tarinfo_and_targets = sorted(tarinfo_and_targets,
+                                     key=lambda k: natural_key(k[0].path))
     return tarinfo_and_targets, class_to_idx
 
 
 class DatasetTar(data.Dataset):
-
     def __init__(self, root, load_bytes=False, transform=None, class_map=''):
 
         class_to_idx = None
@@ -142,8 +153,11 @@ class DatasetTar(data.Dataset):
             class_to_idx = load_class_map(class_map, root)
         assert os.path.isfile(root)
         self.root = root
-        with tarfile.open(root) as tf:  # cannot keep this open across processes, reopen later
-            self.samples, self.class_to_idx = _extract_tar_info(tf, class_to_idx)
+        with tarfile.open(
+                root
+        ) as tf:  # cannot keep this open across processes, reopen later
+            self.samples, self.class_to_idx = _extract_tar_info(
+                tf, class_to_idx)
         self.imgs = self.samples
         self.tarfile = None  # lazy init in __getitem__
         self.load_bytes = load_bytes
@@ -177,7 +191,6 @@ class DatasetTar(data.Dataset):
 
 class AugMixDataset(torch.utils.data.Dataset):
     """Dataset wrapper to perform AugMix or other clean/augmentation mixes"""
-
     def __init__(self, dataset, num_splits=2):
         self.augmentation = None
         self.normalize = None
@@ -187,7 +200,10 @@ class AugMixDataset(torch.utils.data.Dataset):
         self.num_splits = num_splits
 
     def _set_transforms(self, x):
-        assert isinstance(x, (list, tuple)) and len(x) == 3, 'Expecting a tuple/list of 3 transforms'
+        assert isinstance(
+            x,
+            (list,
+             tuple)) and len(x) == 3, 'Expecting a tuple/list of 3 transforms'
         self.dataset.transform = x[0]
         self.augmentation = x[1]
         self.normalize = x[2]
@@ -204,8 +220,10 @@ class AugMixDataset(torch.utils.data.Dataset):
         return x if self.normalize is None else self.normalize(x)
 
     def __getitem__(self, i):
-        x, y = self.dataset[i]  # all splits share the same dataset base transform
-        x_list = [self._normalize(x)]  # first split only normalizes (this is the 'clean' split)
+        x, y = self.dataset[
+            i]  # all splits share the same dataset base transform
+        x_list = [self._normalize(x)
+                  ]  # first split only normalizes (this is the 'clean' split)
         # run the full augmentation on the remaining splits
         for _ in range(self.num_splits - 1):
             x_list.append(self._normalize(self.augmentation(x)))

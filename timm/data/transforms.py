@@ -8,7 +8,6 @@ import numpy as np
 
 
 class ToNumpy:
-
     def __call__(self, pil_img):
         np_img = np.array(pil_img, dtype=np.uint8)
         if np_img.ndim < 3:
@@ -18,7 +17,6 @@ class ToNumpy:
 
 
 class ToTensor:
-
     def __init__(self, dtype=torch.float32):
         self.dtype = dtype
 
@@ -69,8 +67,10 @@ class RandomResizedCropAndInterpolation:
         ratio: range of aspect ratio of the origin aspect ratio cropped
         interpolation: Default: PIL.Image.BILINEAR
     """
-
-    def __init__(self, size, scale=(0.08, 1.0), ratio=(3. / 4., 4. / 3.),
+    def __init__(self,
+                 size,
+                 scale=(0.08, 1.0),
+                 ratio=(3. / 4., 4. / 3.),
                  interpolation='bilinear'):
         if isinstance(size, tuple):
             self.size = size
@@ -146,13 +146,14 @@ class RandomResizedCropAndInterpolation:
 
     def __repr__(self):
         if isinstance(self.interpolation, (tuple, list)):
-            interpolate_str = ' '.join([_pil_interpolation_to_str[x] for x in self.interpolation])
+            interpolate_str = ' '.join(
+                [_pil_interpolation_to_str[x] for x in self.interpolation])
         else:
             interpolate_str = _pil_interpolation_to_str[self.interpolation]
         format_string = self.__class__.__name__ + '(size={0}'.format(self.size)
-        format_string += ', scale={0}'.format(tuple(round(s, 4) for s in self.scale))
-        format_string += ', ratio={0}'.format(tuple(round(r, 4) for r in self.ratio))
+        format_string += ', scale={0}'.format(
+            tuple(round(s, 4) for s in self.scale))
+        format_string += ', ratio={0}'.format(
+            tuple(round(r, 4) for r in self.ratio))
         format_string += ', interpolation={0})'.format(interpolate_str)
         return format_string
-
-

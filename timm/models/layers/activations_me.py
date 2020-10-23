@@ -30,7 +30,6 @@ class SwishJitAutoFn(torch.autograd.Function):
     Inspired by conversation btw Jeremy Howard & Adam Pazske
     https://twitter.com/jeremyphoward/status/1188251041835315200
     """
-
     @staticmethod
     def forward(ctx, x):
         ctx.save_for_backward(x)
@@ -63,7 +62,8 @@ def mish_jit_fwd(x):
 def mish_jit_bwd(x, grad_output):
     x_sigmoid = torch.sigmoid(x)
     x_tanh_sp = F.softplus(x).tanh()
-    return grad_output.mul(x_tanh_sp + x * x_sigmoid * (1 - x_tanh_sp * x_tanh_sp))
+    return grad_output.mul(x_tanh_sp + x * x_sigmoid *
+                           (1 - x_tanh_sp * x_tanh_sp))
 
 
 class MishJitAutoFn(torch.autograd.Function):
@@ -136,7 +136,7 @@ def hard_swish_jit_fwd(x):
 @torch.jit.script
 def hard_swish_jit_bwd(x, grad_output):
     m = torch.ones_like(x) * (x >= 3.)
-    m = torch.where((x >= -3.) & (x <= 3.),  x / 3. + .5, m)
+    m = torch.where((x >= -3.) & (x <= 3.), x / 3. + .5, m)
     return grad_output * m
 
 
@@ -203,6 +203,3 @@ class HardMishMe(nn.Module):
 
     def forward(self, x):
         return HardMishJitAutoFn.apply(x)
-
-
-

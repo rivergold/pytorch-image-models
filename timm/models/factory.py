@@ -3,16 +3,15 @@ from .helpers import load_checkpoint
 from .layers import set_layer_config
 
 
-def create_model(
-        model_name,
-        pretrained=False,
-        num_classes=1000,
-        in_chans=3,
-        checkpoint_path='',
-        scriptable=None,
-        exportable=None,
-        no_jit=None,
-        **kwargs):
+def create_model(model_name,
+                 pretrained=False,
+                 num_classes=1000,
+                 in_chans=3,
+                 checkpoint_path='',
+                 scriptable=None,
+                 exportable=None,
+                 no_jit=None,
+                 **kwargs):
     """Create a model
 
     Args:
@@ -30,10 +29,13 @@ def create_model(
         global_pool (str): global pool type (default: 'avg')
         **: other kwargs are model specific
     """
-    model_args = dict(pretrained=pretrained, num_classes=num_classes, in_chans=in_chans)
+    model_args = dict(pretrained=pretrained,
+                      num_classes=num_classes,
+                      in_chans=in_chans)
 
     # Only EfficientNet and MobileNetV3 models have support for batchnorm params or drop_connect_rate passed as args
-    is_efficientnet = is_model_in_modules(model_name, ['efficientnet', 'mobilenetv3'])
+    is_efficientnet = is_model_in_modules(model_name,
+                                          ['efficientnet', 'mobilenetv3'])
     if not is_efficientnet:
         kwargs.pop('bn_tf', None)
         kwargs.pop('bn_momentum', None)
@@ -41,9 +43,11 @@ def create_model(
 
     # handle backwards compat with drop_connect -> drop_path change
     drop_connect_rate = kwargs.pop('drop_connect_rate', None)
-    if drop_connect_rate is not None and kwargs.get('drop_path_rate', None) is None:
-        print("WARNING: 'drop_connect' as an argument is deprecated, please use 'drop_path'."
-              " Setting drop_path to %f." % drop_connect_rate)
+    if drop_connect_rate is not None and kwargs.get('drop_path_rate',
+                                                    None) is None:
+        print(
+            "WARNING: 'drop_connect' as an argument is deprecated, please use 'drop_path'."
+            " Setting drop_path to %f." % drop_connect_rate)
         kwargs['drop_path_rate'] = drop_connect_rate
 
     # Parameters that aren't supported by all models or are intended to only override model defaults if set
@@ -51,7 +55,9 @@ def create_model(
     # non-supporting models don't break and default args remain in effect.
     kwargs = {k: v for k, v in kwargs.items() if v is not None}
 
-    with set_layer_config(scriptable=scriptable, exportable=exportable, no_jit=no_jit):
+    with set_layer_config(scriptable=scriptable,
+                          exportable=exportable,
+                          no_jit=no_jit):
         if is_model(model_name):
             create_fn = model_entrypoint(model_name)
             model = create_fn(**model_args, **kwargs)

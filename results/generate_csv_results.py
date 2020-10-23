@@ -1,12 +1,10 @@
 import numpy as np
 import pandas as pd
 
-
 results = {
     'results-imagenet.csv': [
         'results-imagenet-real.csv',
-        'results-imagenetv2-matched-frequency.csv',
-        'results-sketch.csv'
+        'results-imagenetv2-matched-frequency.csv', 'results-sketch.csv'
     ],
     'results-imagenet-a-clean.csv': [
         'results-imagenet-a.csv',
@@ -20,18 +18,18 @@ results = {
 def diff(base_df, test_csv):
     base_models = base_df['model'].values
     test_df = pd.read_csv(test_csv)
-    test_models  = test_df['model'].values
+    test_models = test_df['model'].values
 
     rank_diff = np.zeros_like(test_models, dtype='object')
     top1_diff = np.zeros_like(test_models, dtype='object')
     top5_diff = np.zeros_like(test_models, dtype='object')
-    
+
     for rank, model in enumerate(test_models):
-        if model in base_models:            
+        if model in base_models:
             base_rank = int(np.where(base_models == model)[0])
             top1_d = test_df['top1'][rank] - base_df['top1'][base_rank]
             top5_d = test_df['top5'][rank] - base_df['top5'][base_rank]
-            
+
             # rank_diff
             if rank == base_rank:
                 rank_diff[rank] = f'0'
@@ -39,20 +37,20 @@ def diff(base_df, test_csv):
                 rank_diff[rank] = f'-{rank - base_rank}'
             else:
                 rank_diff[rank] = f'+{base_rank - rank}'
-                
+
             # top1_diff
             if top1_d >= .0:
                 top1_diff[rank] = f'+{top1_d:.3f}'
             else:
                 top1_diff[rank] = f'-{abs(top1_d):.3f}'
-            
+
             # top5_diff
             if top5_d >= .0:
                 top5_diff[rank] = f'+{top5_d:.3f}'
             else:
                 top5_diff[rank] = f'-{abs(top5_d):.3f}'
-                
-        else: 
+
+        else:
             rank_diff[rank] = ''
             top1_diff[rank] = ''
             top5_diff[rank] = ''

@@ -5,7 +5,11 @@ import torch.nn.functional as F
 
 
 class AntiAliasDownsampleLayer(nn.Module):
-    def __init__(self, channels: int = 0, filt_size: int = 3, stride: int = 2, no_jit: bool = False):
+    def __init__(self,
+                 channels: int = 0,
+                 filt_size: int = 3,
+                 stride: int = 2,
+                 no_jit: bool = False):
         super(AntiAliasDownsampleLayer, self).__init__()
         if no_jit:
             self.op = Downsample(channels, filt_size, stride)
@@ -37,7 +41,11 @@ class DownsampleJIT(object):
     def __call__(self, input: torch.Tensor):
         input_pad = F.pad(input, (1, 1, 1, 1), 'reflect')
         filt = self.filt.get(str(input.device), self._create_filter(input))
-        return F.conv2d(input_pad, filt, stride=2, padding=0, groups=input.shape[1])
+        return F.conv2d(input_pad,
+                        filt,
+                        stride=2,
+                        padding=0,
+                        groups=input.shape[1])
 
 
 class Downsample(nn.Module):
@@ -53,8 +61,13 @@ class Downsample(nn.Module):
         filt = filt / torch.sum(filt)
 
         # self.filt = filt[None, None, :, :].repeat((self.channels, 1, 1, 1))
-        self.register_buffer('filt', filt[None, None, :, :].repeat((self.channels, 1, 1, 1)))
+        self.register_buffer(
+            'filt', filt[None, None, :, :].repeat((self.channels, 1, 1, 1)))
 
     def forward(self, input):
         input_pad = F.pad(input, (1, 1, 1, 1), 'reflect')
-        return F.conv2d(input_pad, self.filt, stride=self.stride, padding=0, groups=input.shape[1])
+        return F.conv2d(input_pad,
+                        self.filt,
+                        stride=self.stride,
+                        padding=0,
+                        groups=input.shape[1])

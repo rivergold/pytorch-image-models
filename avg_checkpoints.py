@@ -19,17 +19,36 @@ import hashlib
 from timm.models.helpers import load_state_dict
 
 parser = argparse.ArgumentParser(description='PyTorch Checkpoint Averager')
-parser.add_argument('--input', default='', type=str, metavar='PATH',
+parser.add_argument('--input',
+                    default='',
+                    type=str,
+                    metavar='PATH',
                     help='path to base input folder containing checkpoints')
-parser.add_argument('--filter', default='*.pth.tar', type=str, metavar='WILDCARD',
+parser.add_argument('--filter',
+                    default='*.pth.tar',
+                    type=str,
+                    metavar='WILDCARD',
                     help='checkpoint filter (path wildcard)')
-parser.add_argument('--output', default='./averaged.pth', type=str, metavar='PATH',
+parser.add_argument('--output',
+                    default='./averaged.pth',
+                    type=str,
+                    metavar='PATH',
                     help='output filename')
-parser.add_argument('--no-use-ema', dest='no_use_ema', action='store_true',
+parser.add_argument('--no-use-ema',
+                    dest='no_use_ema',
+                    action='store_true',
                     help='Force not using ema version of weights (if present)')
-parser.add_argument('--no-sort', dest='no_sort', action='store_true',
-                    help='Do not sort and select by checkpoint metric, also makes "n" argument irrelevant')
-parser.add_argument('-n', type=int, default=10, metavar='N',
+parser.add_argument(
+    '--no-sort',
+    dest='no_sort',
+    action='store_true',
+    help=
+    'Do not sort and select by checkpoint metric, also makes "n" argument irrelevant'
+)
+parser.add_argument('-n',
+                    type=int,
+                    default=10,
+                    metavar='N',
                     help='Number of checkpoints to average')
 
 
@@ -52,11 +71,13 @@ def main():
     args.sort = not args.no_sort
 
     if os.path.exists(args.output):
-        print("Error: Output filename ({}) already exists.".format(args.output))
+        print("Error: Output filename ({}) already exists.".format(
+            args.output))
         exit(1)
 
     pattern = args.input
-    if not args.input.endswith(os.path.sep) and not args.filter.startswith(os.path.sep):
+    if not args.input.endswith(os.path.sep) and not args.filter.startswith(
+            os.path.sep):
         pattern += os.path.sep
     pattern += args.filter
     checkpoints = glob.glob(pattern, recursive=True)
@@ -82,7 +103,8 @@ def main():
     for c in avg_checkpoints:
         new_state_dict = load_state_dict(c, args.use_ema)
         if not new_state_dict:
-            print("Error: Checkpoint ({}) doesn't exist".format(args.checkpoint))
+            print("Error: Checkpoint ({}) doesn't exist".format(
+                args.checkpoint))
             continue
 
         for k, v in new_state_dict.items():
@@ -104,13 +126,16 @@ def main():
         final_state_dict[k] = v.to(dtype=torch.float32)
 
     try:
-        torch.save(final_state_dict, args.output, _use_new_zipfile_serialization=False)
+        torch.save(final_state_dict,
+                   args.output,
+                   _use_new_zipfile_serialization=False)
     except:
         torch.save(final_state_dict, args.output)
 
     with open(args.output, 'rb') as f:
         sha_hash = hashlib.sha256(f.read()).hexdigest()
-    print("=> Saved state_dict to '{}, SHA256: {}'".format(args.output, sha_hash))
+    print("=> Saved state_dict to '{}, SHA256: {}'".format(
+        args.output, sha_hash))
 
 
 if __name__ == '__main__':

@@ -6,7 +6,6 @@ from .activations_jit import *
 from .activations_me import *
 from .config import is_exportable, is_scriptable, is_no_jit
 
-
 _ACT_FN_DEFAULT = dict(
     swish=swish,
     mish=mish,
@@ -25,13 +24,11 @@ _ACT_FN_DEFAULT = dict(
     hard_mish=hard_mish,
 )
 
-_ACT_FN_JIT = dict(
-    swish=swish_jit,
-    mish=mish_jit,
-    hard_sigmoid=hard_sigmoid_jit,
-    hard_swish=hard_swish_jit,
-    hard_mish=hard_mish_jit
-)
+_ACT_FN_JIT = dict(swish=swish_jit,
+                   mish=mish_jit,
+                   hard_sigmoid=hard_sigmoid_jit,
+                   hard_swish=hard_swish_jit,
+                   hard_mish=hard_mish_jit)
 
 _ACT_FN_ME = dict(
     swish=swish_me,
@@ -59,13 +56,11 @@ _ACT_LAYER_DEFAULT = dict(
     hard_mish=HardMish,
 )
 
-_ACT_LAYER_JIT = dict(
-    swish=SwishJit,
-    mish=MishJit,
-    hard_sigmoid=HardSigmoidJit,
-    hard_swish=HardSwishJit,
-    hard_mish=HardMishJit
-)
+_ACT_LAYER_JIT = dict(swish=SwishJit,
+                      mish=MishJit,
+                      hard_sigmoid=HardSigmoidJit,
+                      hard_swish=HardSwishJit,
+                      hard_mish=HardMishJit)
 
 _ACT_LAYER_ME = dict(
     swish=SwishMe,

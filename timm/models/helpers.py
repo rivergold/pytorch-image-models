@@ -16,7 +16,6 @@ import torch.utils.model_zoo as model_zoo
 from .features import FeatureListNet, FeatureDictNet, FeatureHookNet
 from .layers import Conv2dSame
 
-
 _logger = logging.getLogger(__name__)
 
 
@@ -36,7 +35,8 @@ def load_state_dict(checkpoint_path, use_ema=False):
             state_dict = new_state_dict
         else:
             state_dict = checkpoint
-        _logger.info("Loaded {} from checkpoint '{}'".format(state_dict_key, checkpoint_path))
+        _logger.info("Loaded {} from checkpoint '{}'".format(
+            state_dict_key, checkpoint_path))
         return state_dict
     else:
         _logger.error("No checkpoint found at '{}'".format(checkpoint_path))
@@ -48,7 +48,11 @@ def load_checkpoint(model, checkpoint_path, use_ema=False, strict=True):
     model.load_state_dict(state_dict, strict=strict)
 
 
-def resume_checkpoint(model, checkpoint_path, optimizer=None, loss_scaler=None, log_info=True):
+def resume_checkpoint(model,
+                      checkpoint_path,
+                      optimizer=None,
+                      loss_scaler=None,
+                      log_info=True):
     resume_epoch = None
     if os.path.isfile(checkpoint_path):
         checkpoint = torch.load(checkpoint_path, map_location='cpu')
@@ -63,13 +67,16 @@ def resume_checkpoint(model, checkpoint_path, optimizer=None, loss_scaler=None, 
 
             if optimizer is not None and 'optimizer' in checkpoint:
                 if log_info:
-                    _logger.info('Restoring optimizer state from checkpoint...')
+                    _logger.info(
+                        'Restoring optimizer state from checkpoint...')
                 optimizer.load_state_dict(checkpoint['optimizer'])
 
             if loss_scaler is not None and loss_scaler.state_dict_key in checkpoint:
                 if log_info:
-                    _logger.info('Restoring AMP loss scaler state from checkpoint...')
-                loss_scaler.load_state_dict(checkpoint[loss_scaler.state_dict_key])
+                    _logger.info(
+                        'Restoring AMP loss scaler state from checkpoint...')
+                loss_scaler.load_state_dict(
+                    checkpoint[loss_scaler.state_dict_key])
 
             if 'epoch' in checkpoint:
                 resume_epoch = checkpoint['epoch']
@@ -77,7 +84,8 @@ def resume_checkpoint(model, checkpoint_path, optimizer=None, loss_scaler=None, 
                     resume_epoch += 1  # start at the next epoch, old checkpoints incremented before save
 
             if log_info:
-                _logger.info("Loaded checkpoint '{}' (epoch {})".format(checkpoint_path, checkpoint['epoch']))
+                _logger.info("Loaded checkpoint '{}' (epoch {})".format(
+                    checkpoint_path, checkpoint['epoch']))
         else:
             model.load_state_dict(checkpoint)
             if log_info:
@@ -88,21 +96,31 @@ def resume_checkpoint(model, checkpoint_path, optimizer=None, loss_scaler=None, 
         raise FileNotFoundError()
 
 
-def load_pretrained(model, cfg=None, num_classes=1000, in_chans=3, filter_fn=None, strict=True):
+def load_pretrained(model,
+                    cfg=None,
+                    num_classes=1000,
+                    in_chans=3,
+                    filter_fn=None,
+                    strict=True):
     if cfg is None:
         cfg = getattr(model, 'default_cfg')
     if cfg is None or 'url' not in cfg or not cfg['url']:
-        _logger.warning("Pretrained model URL is invalid, using random initialization.")
+        _logger.warning(
+            "Pretrained model URL is invalid, using random initialization.")
         return
 
-    state_dict = model_zoo.load_url(cfg['url'], progress=False, map_location='cpu')
+    state_dict = model_zoo.load_url(cfg['url'],
+                                    progress=False,
+                                    map_location='cpu')
 
     if filter_fn is not None:
         state_dict = filter_fn(state_dict)
 
     if in_chans == 1:
         conv1_name = cfg['first_conv']
-        _logger.info('Converting first conv (%s) pretrained weights from 3 to 1 channel' % conv1_name)
+        _logger.info(
+            'Converting first conv (%s) pretrained weights from 3 to 1 channel'
+            % conv1_name)
         conv1_weight = state_dict[conv1_name + '.weight']
         # Some weights are in torch.half, ensure it's float for sum on CPU
         conv1_type = conv1_weight.dtype
@@ -124,15 +142,19 @@ def load_pretrained(model, cfg=None, num_classes=1000, in_chans=3, filter_fn=Non
         conv1_weight = conv1_weight.float()
         O, I, J, K = conv1_weight.shape
         if I != 3:
-            _logger.warning('Deleting first conv (%s) from pretrained weights.' % conv1_name)
+            _logger.warning(
+                'Deleting first conv (%s) from pretrained weights.' %
+                conv1_name)
             del state_dict[conv1_name + '.weight']
             strict = False
         else:
             # NOTE this strategy should be better than random init, but there could be other combinations of
             # the original RGB input layer weights that'd work better for specific cases.
-            _logger.info('Repeating first conv (%s) weights in channel dim.' % conv1_name)
+            _logger.info('Repeating first conv (%s) weights in channel dim.' %
+                         conv1_name)
             repeat = int(math.ceil(in_chans / 3))
-            conv1_weight = conv1_weight.repeat(1, repeat, 1, 1)[:, :in_chans, :, :]
+            conv1_weight = conv1_weight.repeat(1, repeat, 1,
+                                               1)[:, :in_chans, :, :]
             conv1_weight *= (3 / float(in_chans))
             conv1_weight = conv1_weight.to(conv1_type)
             state_dict[conv1_name + '.weight'] = conv1_weight
@@ -209,7 +231,8 @@ def adapt_model_from_string(parent_module, model_string):
     new_module = deepcopy(parent_module)
     for n, m in parent_module.named_modules():
         old_module = extract_layer(parent_module, n)
-        if isinstance(old_module, nn.Conv2d) or isinstance(old_module, Conv2dSame):
+        if isinstance(old_module, nn.Conv2d) or isinstance(
+                old_module, Conv2dSame):
             if isinstance(old_module, Conv2dSame):
                 conv = Conv2dSame
             else:
@@ -221,21 +244,28 @@ def adapt_model_from_string(parent_module, model_string):
             if old_module.groups > 1:
                 in_channels = out_channels
                 g = in_channels
-            new_conv = conv(
-                in_channels=in_channels, out_channels=out_channels, kernel_size=old_module.kernel_size,
-                bias=old_module.bias is not None, padding=old_module.padding, dilation=old_module.dilation,
-                groups=g, stride=old_module.stride)
+            new_conv = conv(in_channels=in_channels,
+                            out_channels=out_channels,
+                            kernel_size=old_module.kernel_size,
+                            bias=old_module.bias is not None,
+                            padding=old_module.padding,
+                            dilation=old_module.dilation,
+                            groups=g,
+                            stride=old_module.stride)
             set_layer(new_module, n, new_conv)
         if isinstance(old_module, nn.BatchNorm2d):
-            new_bn = nn.BatchNorm2d(
-                num_features=state_dict[n + '.weight'][0], eps=old_module.eps, momentum=old_module.momentum,
-                affine=old_module.affine, track_running_stats=True)
+            new_bn = nn.BatchNorm2d(num_features=state_dict[n + '.weight'][0],
+                                    eps=old_module.eps,
+                                    momentum=old_module.momentum,
+                                    affine=old_module.affine,
+                                    track_running_stats=True)
             set_layer(new_module, n, new_bn)
         if isinstance(old_module, nn.Linear):
             # FIXME extra checks to ensure this is actually the FC classifier layer and not a diff Linear layer?
             num_features = state_dict[n + '.weight'][1]
-            new_fc = nn.Linear(
-                in_features=num_features, out_features=old_module.out_features, bias=old_module.bias is not None)
+            new_fc = nn.Linear(in_features=num_features,
+                               out_features=old_module.out_features,
+                               bias=old_module.bias is not None)
             set_layer(new_module, n, new_fc)
             if hasattr(new_module, 'num_features'):
                 new_module.num_features = num_features
@@ -246,21 +276,21 @@ def adapt_model_from_string(parent_module, model_string):
 
 
 def adapt_model_from_file(parent_module, model_variant):
-    adapt_file = os.path.join(os.path.dirname(__file__), 'pruned', model_variant + '.txt')
+    adapt_file = os.path.join(os.path.dirname(__file__), 'pruned',
+                              model_variant + '.txt')
     with open(adapt_file, 'r') as f:
         return adapt_model_from_string(parent_module, f.read().strip())
 
 
-def build_model_with_cfg(
-        model_cls: Callable,
-        variant: str,
-        pretrained: bool,
-        default_cfg: dict,
-        model_cfg: dict = None,
-        feature_cfg: dict = None,
-        pretrained_strict: bool = True,
-        pretrained_filter_fn: Callable = None,
-        **kwargs):
+def build_model_with_cfg(model_cls: Callable,
+                         variant: str,
+                         pretrained: bool,
+                         default_cfg: dict,
+                         model_cfg: dict = None,
+                         feature_cfg: dict = None,
+                         pretrained_strict: bool = True,
+                         pretrained_filter_fn: Callable = None,
+                         **kwargs):
     pruned = kwargs.pop('pruned', False)
     features = False
     feature_cfg = feature_cfg or {}
@@ -271,19 +301,20 @@ def build_model_with_cfg(
         if 'out_indices' in kwargs:
             feature_cfg['out_indices'] = kwargs.pop('out_indices')
 
-    model = model_cls(**kwargs) if model_cfg is None else model_cls(cfg=model_cfg, **kwargs)
+    model = model_cls(
+        **kwargs) if model_cfg is None else model_cls(cfg=model_cfg, **kwargs)
     model.default_cfg = deepcopy(default_cfg)
-    
+
     if pruned:
         model = adapt_model_from_file(model, variant)
 
     if pretrained:
-        load_pretrained(
-            model,
-            num_classes=kwargs.get('num_classes', 0),
-            in_chans=kwargs.get('in_chans', 3),
-            filter_fn=pretrained_filter_fn, strict=pretrained_strict)
-    
+        load_pretrained(model,
+                        num_classes=kwargs.get('num_classes', 0),
+                        in_chans=kwargs.get('in_chans', 3),
+                        filter_fn=pretrained_filter_fn,
+                        strict=pretrained_strict)
+
     if features:
         feature_cls = FeatureListNet
         if 'feature_cls' in feature_cfg:
@@ -295,5 +326,5 @@ def build_model_with_cfg(
                 else:
                     assert False, f'Unknown feature class {feature_cls}'
         model = feature_cls(model, **feature_cfg)
-    
+
     return model

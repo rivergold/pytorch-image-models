@@ -1,4 +1,3 @@
-
 """ MobileNet V3
 
 A PyTorch impl of MobileNet-V3, compatible with TF weights from official impl.
@@ -26,42 +25,74 @@ __all__ = ['MobileNetV3']
 
 def _cfg(url='', **kwargs):
     return {
-        'url': url, 'num_classes': 1000, 'input_size': (3, 224, 224), 'pool_size': (1, 1),
-        'crop_pct': 0.875, 'interpolation': 'bilinear',
-        'mean': IMAGENET_DEFAULT_MEAN, 'std': IMAGENET_DEFAULT_STD,
-        'first_conv': 'conv_stem', 'classifier': 'classifier',
+        'url': url,
+        'num_classes': 1000,
+        'input_size': (3, 224, 224),
+        'pool_size': (1, 1),
+        'crop_pct': 0.875,
+        'interpolation': 'bilinear',
+        'mean': IMAGENET_DEFAULT_MEAN,
+        'std': IMAGENET_DEFAULT_STD,
+        'first_conv': 'conv_stem',
+        'classifier': 'classifier',
         **kwargs
     }
 
 
 default_cfgs = {
-    'mobilenetv3_large_075': _cfg(url=''),
-    'mobilenetv3_large_100': _cfg(
+    'mobilenetv3_large_075':
+    _cfg(url=''),
+    'mobilenetv3_large_100':
+    _cfg(
         interpolation='bicubic',
-        url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/mobilenetv3_large_100_ra-f55367f5.pth'),
-    'mobilenetv3_small_075': _cfg(url=''),
-    'mobilenetv3_small_100': _cfg(url=''),
-    'mobilenetv3_rw': _cfg(
-        url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/mobilenetv3_100-35495452.pth',
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/mobilenetv3_large_100_ra-f55367f5.pth'
+    ),
+    'mobilenetv3_small_075':
+    _cfg(url=''),
+    'mobilenetv3_small_100':
+    _cfg(url=''),
+    'mobilenetv3_rw':
+    _cfg(
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/mobilenetv3_100-35495452.pth',
         interpolation='bicubic'),
-    'tf_mobilenetv3_large_075': _cfg(
-        url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/tf_mobilenetv3_large_075-150ee8b0.pth',
-        mean=IMAGENET_INCEPTION_MEAN, std=IMAGENET_INCEPTION_STD),
-    'tf_mobilenetv3_large_100': _cfg(
-        url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/tf_mobilenetv3_large_100-427764d5.pth',
-        mean=IMAGENET_INCEPTION_MEAN, std=IMAGENET_INCEPTION_STD),
-    'tf_mobilenetv3_large_minimal_100': _cfg(
-        url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/tf_mobilenetv3_large_minimal_100-8596ae28.pth',
-        mean=IMAGENET_INCEPTION_MEAN, std=IMAGENET_INCEPTION_STD),
-    'tf_mobilenetv3_small_075': _cfg(
-        url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/tf_mobilenetv3_small_075-da427f52.pth',
-        mean=IMAGENET_INCEPTION_MEAN, std=IMAGENET_INCEPTION_STD),
-    'tf_mobilenetv3_small_100': _cfg(
-        url= 'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/tf_mobilenetv3_small_100-37f49e2b.pth',
-        mean=IMAGENET_INCEPTION_MEAN, std=IMAGENET_INCEPTION_STD),
-    'tf_mobilenetv3_small_minimal_100': _cfg(
-        url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/tf_mobilenetv3_small_minimal_100-922a7843.pth',
-        mean=IMAGENET_INCEPTION_MEAN, std=IMAGENET_INCEPTION_STD),
+    'tf_mobilenetv3_large_075':
+    _cfg(
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/tf_mobilenetv3_large_075-150ee8b0.pth',
+        mean=IMAGENET_INCEPTION_MEAN,
+        std=IMAGENET_INCEPTION_STD),
+    'tf_mobilenetv3_large_100':
+    _cfg(
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/tf_mobilenetv3_large_100-427764d5.pth',
+        mean=IMAGENET_INCEPTION_MEAN,
+        std=IMAGENET_INCEPTION_STD),
+    'tf_mobilenetv3_large_minimal_100':
+    _cfg(
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/tf_mobilenetv3_large_minimal_100-8596ae28.pth',
+        mean=IMAGENET_INCEPTION_MEAN,
+        std=IMAGENET_INCEPTION_STD),
+    'tf_mobilenetv3_small_075':
+    _cfg(
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/tf_mobilenetv3_small_075-da427f52.pth',
+        mean=IMAGENET_INCEPTION_MEAN,
+        std=IMAGENET_INCEPTION_STD),
+    'tf_mobilenetv3_small_100':
+    _cfg(
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/tf_mobilenetv3_small_100-37f49e2b.pth',
+        mean=IMAGENET_INCEPTION_MEAN,
+        std=IMAGENET_INCEPTION_STD),
+    'tf_mobilenetv3_small_minimal_100':
+    _cfg(
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/tf_mobilenetv3_small_minimal_100-922a7843.pth',
+        mean=IMAGENET_INCEPTION_MEAN,
+        std=IMAGENET_INCEPTION_STD),
 }
 
 _DEBUG = False
@@ -76,10 +107,22 @@ class MobileNetV3(nn.Module):
 
     Paper: https://arxiv.org/abs/1905.02244
     """
-
-    def __init__(self, block_args, num_classes=1000, in_chans=3, stem_size=16, num_features=1280, head_bias=True,
-                 channel_multiplier=1.0, pad_type='', act_layer=nn.ReLU, drop_rate=0., drop_path_rate=0.,
-                 se_kwargs=None, norm_layer=nn.BatchNorm2d, norm_kwargs=None, global_pool='avg'):
+    def __init__(self,
+                 block_args,
+                 num_classes=1000,
+                 in_chans=3,
+                 stem_size=16,
+                 num_features=1280,
+                 head_bias=True,
+                 channel_multiplier=1.0,
+                 pad_type='',
+                 act_layer=nn.ReLU,
+                 drop_rate=0.,
+                 drop_path_rate=0.,
+                 se_kwargs=None,
+                 norm_layer=nn.BatchNorm2d,
+                 norm_kwargs=None,
+                 global_pool='avg'):
         super(MobileNetV3, self).__init__()
 
         self.num_classes = num_classes
@@ -88,14 +131,26 @@ class MobileNetV3(nn.Module):
 
         # Stem
         stem_size = round_channels(stem_size, channel_multiplier)
-        self.conv_stem = create_conv2d(in_chans, stem_size, 3, stride=2, padding=pad_type)
+        self.conv_stem = create_conv2d(in_chans,
+                                       stem_size,
+                                       3,
+                                       stride=2,
+                                       padding=pad_type)
         self.bn1 = norm_layer(stem_size, **norm_kwargs)
         self.act1 = act_layer(inplace=True)
 
         # Middle stages (IR/ER/DS Blocks)
-        builder = EfficientNetBuilder(
-            channel_multiplier, 8, None, 32, pad_type, act_layer, se_kwargs,
-            norm_layer, norm_kwargs, drop_path_rate, verbose=_DEBUG)
+        builder = EfficientNetBuilder(channel_multiplier,
+                                      8,
+                                      None,
+                                      32,
+                                      pad_type,
+                                      act_layer,
+                                      se_kwargs,
+                                      norm_layer,
+                                      norm_kwargs,
+                                      drop_path_rate,
+                                      verbose=_DEBUG)
         self.blocks = nn.Sequential(*builder(stem_size, block_args))
         self.feature_info = builder.features
         head_chs = builder.in_chs
@@ -103,9 +158,15 @@ class MobileNetV3(nn.Module):
         # Head + Pooling
         self.global_pool = SelectAdaptivePool2d(pool_type=global_pool)
         num_pooled_chs = head_chs * self.global_pool.feat_mult()
-        self.conv_head = create_conv2d(num_pooled_chs, self.num_features, 1, padding=pad_type, bias=head_bias)
+        self.conv_head = create_conv2d(num_pooled_chs,
+                                       self.num_features,
+                                       1,
+                                       padding=pad_type,
+                                       bias=head_bias)
         self.act2 = act_layer(inplace=True)
-        self.classifier = nn.Linear(self.num_features, num_classes) if num_classes > 0 else nn.Identity()
+        self.classifier = nn.Linear(
+            self.num_features,
+            num_classes) if num_classes > 0 else nn.Identity()
 
         efficientnet_init_weights(self)
 
@@ -113,7 +174,9 @@ class MobileNetV3(nn.Module):
         layers = [self.conv_stem, self.bn1, self.act1]
         layers.extend(self.blocks)
         layers.extend([self.global_pool, self.conv_head, self.act2])
-        layers.extend([nn.Flatten(), nn.Dropout(self.drop_rate), self.classifier])
+        layers.extend(
+            [nn.Flatten(),
+             nn.Dropout(self.drop_rate), self.classifier])
         return nn.Sequential(*layers)
 
     def get_classifier(self):
@@ -123,7 +186,9 @@ class MobileNetV3(nn.Module):
         self.num_classes = num_classes
         # cannot meaningfully change pooling of efficient head after creation
         self.global_pool = SelectAdaptivePool2d(pool_type=global_pool)
-        self.classifier = nn.Linear(self.num_features, num_classes) if num_classes > 0 else nn.Identity()
+        self.classifier = nn.Linear(
+            self.num_features,
+            num_classes) if num_classes > 0 else nn.Identity()
 
     def forward_features(self, x):
         x = self.conv_stem(x)
@@ -150,28 +215,54 @@ class MobileNetV3Features(nn.Module):
     A work-in-progress feature extraction module for MobileNet-V3 to use as a backbone for segmentation
     and object detection models.
     """
-
-    def __init__(self, block_args, out_indices=(0, 1, 2, 3, 4), feature_location='bottleneck',
-                 in_chans=3, stem_size=16, channel_multiplier=1.0, output_stride=32, pad_type='',
-                 act_layer=nn.ReLU, drop_rate=0., drop_path_rate=0., se_kwargs=None,
-                 norm_layer=nn.BatchNorm2d, norm_kwargs=None):
+    def __init__(self,
+                 block_args,
+                 out_indices=(0, 1, 2, 3, 4),
+                 feature_location='bottleneck',
+                 in_chans=3,
+                 stem_size=16,
+                 channel_multiplier=1.0,
+                 output_stride=32,
+                 pad_type='',
+                 act_layer=nn.ReLU,
+                 drop_rate=0.,
+                 drop_path_rate=0.,
+                 se_kwargs=None,
+                 norm_layer=nn.BatchNorm2d,
+                 norm_kwargs=None):
         super(MobileNetV3Features, self).__init__()
         norm_kwargs = norm_kwargs or {}
         self.drop_rate = drop_rate
 
         # Stem
         stem_size = round_channels(stem_size, channel_multiplier)
-        self.conv_stem = create_conv2d(in_chans, stem_size, 3, stride=2, padding=pad_type)
+        self.conv_stem = create_conv2d(in_chans,
+                                       stem_size,
+                                       3,
+                                       stride=2,
+                                       padding=pad_type)
         self.bn1 = norm_layer(stem_size, **norm_kwargs)
         self.act1 = act_layer(inplace=True)
 
         # Middle stages (IR/ER/DS Blocks)
-        builder = EfficientNetBuilder(
-            channel_multiplier, 8, None, output_stride, pad_type, act_layer, se_kwargs,
-            norm_layer, norm_kwargs, drop_path_rate, feature_location=feature_location, verbose=_DEBUG)
+        builder = EfficientNetBuilder(channel_multiplier,
+                                      8,
+                                      None,
+                                      output_stride,
+                                      pad_type,
+                                      act_layer,
+                                      se_kwargs,
+                                      norm_layer,
+                                      norm_kwargs,
+                                      drop_path_rate,
+                                      feature_location=feature_location,
+                                      verbose=_DEBUG)
         self.blocks = nn.Sequential(*builder(stem_size, block_args))
         self.feature_info = FeatureInfo(builder.features, out_indices)
-        self._stage_out_idx = {v['stage']: i for i, v in enumerate(self.feature_info) if i in out_indices}
+        self._stage_out_idx = {
+            v['stage']: i
+            for i, v in enumerate(self.feature_info) if i in out_indices
+        }
 
         efficientnet_init_weights(self)
 
@@ -211,12 +302,18 @@ def _create_mnv3(model_kwargs, variant, pretrained=False):
     else:
         load_strict = True
         model_cls = MobileNetV3
-    return build_model_with_cfg(
-        model_cls, variant, pretrained, default_cfg=default_cfgs[variant],
-        pretrained_strict=load_strict, **model_kwargs)
+    return build_model_with_cfg(model_cls,
+                                variant,
+                                pretrained,
+                                default_cfg=default_cfgs[variant],
+                                pretrained_strict=load_strict,
+                                **model_kwargs)
 
 
-def _gen_mobilenet_v3_rw(variant, channel_multiplier=1.0, pretrained=False, **kwargs):
+def _gen_mobilenet_v3_rw(variant,
+                         channel_multiplier=1.0,
+                         pretrained=False,
+                         **kwargs):
     """Creates a MobileNet-V3 model.
 
     Ref impl: ?
@@ -233,7 +330,8 @@ def _gen_mobilenet_v3_rw(variant, channel_multiplier=1.0, pretrained=False, **kw
         # stage 2, 56x56 in
         ['ir_r3_k5_s2_e3_c40_se0.25_nre'],  # relu
         # stage 3, 28x28 in
-        ['ir_r1_k3_s2_e6_c80', 'ir_r1_k3_s1_e2.5_c80', 'ir_r2_k3_s1_e2.3_c80'],  # hard-swish
+        ['ir_r1_k3_s2_e6_c80', 'ir_r1_k3_s1_e2.5_c80',
+         'ir_r2_k3_s1_e2.3_c80'],  # hard-swish
         # stage 4, 14x14in
         ['ir_r2_k3_s1_e6_c112_se0.25'],  # hard-swish
         # stage 5, 14x14in
@@ -247,14 +345,19 @@ def _gen_mobilenet_v3_rw(variant, channel_multiplier=1.0, pretrained=False, **kw
         channel_multiplier=channel_multiplier,
         norm_kwargs=resolve_bn_args(kwargs),
         act_layer=resolve_act_layer(kwargs, 'hard_swish'),
-        se_kwargs=dict(gate_fn=get_act_fn('hard_sigmoid'), reduce_mid=True, divisor=1),
+        se_kwargs=dict(gate_fn=get_act_fn('hard_sigmoid'),
+                       reduce_mid=True,
+                       divisor=1),
         **kwargs,
     )
     model = _create_mnv3(model_kwargs, variant, pretrained)
     return model
 
 
-def _gen_mobilenet_v3(variant, channel_multiplier=1.0, pretrained=False, **kwargs):
+def _gen_mobilenet_v3(variant,
+                      channel_multiplier=1.0,
+                      pretrained=False,
+                      **kwargs):
     """Creates a MobileNet-V3 model.
 
     Ref impl: ?
@@ -287,9 +390,11 @@ def _gen_mobilenet_v3(variant, channel_multiplier=1.0, pretrained=False, **kwarg
                 # stage 0, 112x112 in
                 ['ds_r1_k3_s2_e1_c16_se0.25_nre'],  # relu
                 # stage 1, 56x56 in
-                ['ir_r1_k3_s2_e4.5_c24_nre', 'ir_r1_k3_s1_e3.67_c24_nre'],  # relu
+                ['ir_r1_k3_s2_e4.5_c24_nre',
+                 'ir_r1_k3_s1_e3.67_c24_nre'],  # relu
                 # stage 2, 28x28 in
-                ['ir_r1_k5_s2_e4_c40_se0.25', 'ir_r2_k5_s1_e6_c40_se0.25'],  # hard-swish
+                ['ir_r1_k5_s2_e4_c40_se0.25',
+                 'ir_r2_k5_s1_e6_c40_se0.25'],  # hard-swish
                 # stage 3, 14x14 in
                 ['ir_r2_k5_s1_e3_c48_se0.25'],  # hard-swish
                 # stage 4, 14x14in
@@ -309,7 +414,10 @@ def _gen_mobilenet_v3(variant, channel_multiplier=1.0, pretrained=False, **kwarg
                 # stage 2, 56x56 in
                 ['ir_r3_k3_s2_e3_c40'],
                 # stage 3, 28x28 in
-                ['ir_r1_k3_s2_e6_c80', 'ir_r1_k3_s1_e2.5_c80', 'ir_r2_k3_s1_e2.3_c80'],
+                [
+                    'ir_r1_k3_s2_e6_c80', 'ir_r1_k3_s1_e2.5_c80',
+                    'ir_r2_k3_s1_e2.3_c80'
+                ],
                 # stage 4, 14x14in
                 ['ir_r2_k3_s1_e6_c112'],
                 # stage 5, 14x14in
@@ -327,7 +435,10 @@ def _gen_mobilenet_v3(variant, channel_multiplier=1.0, pretrained=False, **kwarg
                 # stage 2, 56x56 in
                 ['ir_r3_k5_s2_e3_c40_se0.25_nre'],  # relu
                 # stage 3, 28x28 in
-                ['ir_r1_k3_s2_e6_c80', 'ir_r1_k3_s1_e2.5_c80', 'ir_r2_k3_s1_e2.3_c80'],  # hard-swish
+                [
+                    'ir_r1_k3_s2_e6_c80', 'ir_r1_k3_s1_e2.5_c80',
+                    'ir_r2_k3_s1_e2.3_c80'
+                ],  # hard-swish
                 # stage 4, 14x14in
                 ['ir_r2_k3_s1_e6_c112_se0.25'],  # hard-swish
                 # stage 5, 14x14in
@@ -343,7 +454,10 @@ def _gen_mobilenet_v3(variant, channel_multiplier=1.0, pretrained=False, **kwarg
         channel_multiplier=channel_multiplier,
         norm_kwargs=resolve_bn_args(kwargs),
         act_layer=act_layer,
-        se_kwargs=dict(act_layer=nn.ReLU, gate_fn=hard_sigmoid, reduce_mid=True, divisor=8),
+        se_kwargs=dict(act_layer=nn.ReLU,
+                       gate_fn=hard_sigmoid,
+                       reduce_mid=True,
+                       divisor=8),
         **kwargs,
     )
     model = _create_mnv3(model_kwargs, variant, pretrained)
@@ -353,28 +467,40 @@ def _gen_mobilenet_v3(variant, channel_multiplier=1.0, pretrained=False, **kwarg
 @register_model
 def mobilenetv3_large_075(pretrained=False, **kwargs):
     """ MobileNet V3 """
-    model = _gen_mobilenet_v3('mobilenetv3_large_075', 0.75, pretrained=pretrained, **kwargs)
+    model = _gen_mobilenet_v3('mobilenetv3_large_075',
+                              0.75,
+                              pretrained=pretrained,
+                              **kwargs)
     return model
 
 
 @register_model
 def mobilenetv3_large_100(pretrained=False, **kwargs):
     """ MobileNet V3 """
-    model = _gen_mobilenet_v3('mobilenetv3_large_100', 1.0, pretrained=pretrained, **kwargs)
+    model = _gen_mobilenet_v3('mobilenetv3_large_100',
+                              1.0,
+                              pretrained=pretrained,
+                              **kwargs)
     return model
 
 
 @register_model
 def mobilenetv3_small_075(pretrained=False, **kwargs):
     """ MobileNet V3 """
-    model = _gen_mobilenet_v3('mobilenetv3_small_075', 0.75, pretrained=pretrained, **kwargs)
+    model = _gen_mobilenet_v3('mobilenetv3_small_075',
+                              0.75,
+                              pretrained=pretrained,
+                              **kwargs)
     return model
 
 
 @register_model
 def mobilenetv3_small_100(pretrained=False, **kwargs):
     """ MobileNet V3 """
-    model = _gen_mobilenet_v3('mobilenetv3_small_100', 1.0, pretrained=pretrained, **kwargs)
+    model = _gen_mobilenet_v3('mobilenetv3_small_100',
+                              1.0,
+                              pretrained=pretrained,
+                              **kwargs)
     return model
 
 
@@ -384,7 +510,10 @@ def mobilenetv3_rw(pretrained=False, **kwargs):
     if pretrained:
         # pretrained model trained with non-default BN epsilon
         kwargs['bn_eps'] = BN_EPS_TF_DEFAULT
-    model = _gen_mobilenet_v3_rw('mobilenetv3_rw', 1.0, pretrained=pretrained, **kwargs)
+    model = _gen_mobilenet_v3_rw('mobilenetv3_rw',
+                                 1.0,
+                                 pretrained=pretrained,
+                                 **kwargs)
     return model
 
 
@@ -393,7 +522,10 @@ def tf_mobilenetv3_large_075(pretrained=False, **kwargs):
     """ MobileNet V3 """
     kwargs['bn_eps'] = BN_EPS_TF_DEFAULT
     kwargs['pad_type'] = 'same'
-    model = _gen_mobilenet_v3('tf_mobilenetv3_large_075', 0.75, pretrained=pretrained, **kwargs)
+    model = _gen_mobilenet_v3('tf_mobilenetv3_large_075',
+                              0.75,
+                              pretrained=pretrained,
+                              **kwargs)
     return model
 
 
@@ -402,7 +534,10 @@ def tf_mobilenetv3_large_100(pretrained=False, **kwargs):
     """ MobileNet V3 """
     kwargs['bn_eps'] = BN_EPS_TF_DEFAULT
     kwargs['pad_type'] = 'same'
-    model = _gen_mobilenet_v3('tf_mobilenetv3_large_100', 1.0, pretrained=pretrained, **kwargs)
+    model = _gen_mobilenet_v3('tf_mobilenetv3_large_100',
+                              1.0,
+                              pretrained=pretrained,
+                              **kwargs)
     return model
 
 
@@ -411,7 +546,10 @@ def tf_mobilenetv3_large_minimal_100(pretrained=False, **kwargs):
     """ MobileNet V3 """
     kwargs['bn_eps'] = BN_EPS_TF_DEFAULT
     kwargs['pad_type'] = 'same'
-    model = _gen_mobilenet_v3('tf_mobilenetv3_large_minimal_100', 1.0, pretrained=pretrained, **kwargs)
+    model = _gen_mobilenet_v3('tf_mobilenetv3_large_minimal_100',
+                              1.0,
+                              pretrained=pretrained,
+                              **kwargs)
     return model
 
 
@@ -420,7 +558,10 @@ def tf_mobilenetv3_small_075(pretrained=False, **kwargs):
     """ MobileNet V3 """
     kwargs['bn_eps'] = BN_EPS_TF_DEFAULT
     kwargs['pad_type'] = 'same'
-    model = _gen_mobilenet_v3('tf_mobilenetv3_small_075', 0.75, pretrained=pretrained, **kwargs)
+    model = _gen_mobilenet_v3('tf_mobilenetv3_small_075',
+                              0.75,
+                              pretrained=pretrained,
+                              **kwargs)
     return model
 
 
@@ -429,7 +570,10 @@ def tf_mobilenetv3_small_100(pretrained=False, **kwargs):
     """ MobileNet V3 """
     kwargs['bn_eps'] = BN_EPS_TF_DEFAULT
     kwargs['pad_type'] = 'same'
-    model = _gen_mobilenet_v3('tf_mobilenetv3_small_100', 1.0, pretrained=pretrained, **kwargs)
+    model = _gen_mobilenet_v3('tf_mobilenetv3_small_100',
+                              1.0,
+                              pretrained=pretrained,
+                              **kwargs)
     return model
 
 
@@ -438,5 +582,8 @@ def tf_mobilenetv3_small_minimal_100(pretrained=False, **kwargs):
     """ MobileNet V3 """
     kwargs['bn_eps'] = BN_EPS_TF_DEFAULT
     kwargs['pad_type'] = 'same'
-    model = _gen_mobilenet_v3('tf_mobilenetv3_small_minimal_100', 1.0, pretrained=pretrained, **kwargs)
+    model = _gen_mobilenet_v3('tf_mobilenetv3_small_minimal_100',
+                              1.0,
+                              pretrained=pretrained,
+                              **kwargs)
     return model

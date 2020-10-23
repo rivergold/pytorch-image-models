@@ -3,7 +3,12 @@ import torch.nn as nn
 
 
 class AsymmetricLossMultiLabel(nn.Module):
-    def __init__(self, gamma_neg=4, gamma_pos=1, clip=0.05, eps=1e-8, disable_torch_grad_focal_loss=False):
+    def __init__(self,
+                 gamma_neg=4,
+                 gamma_pos=1,
+                 clip=0.05,
+                 eps=1e-8,
+                 disable_torch_grad_focal_loss=False):
         super(AsymmetricLossMultiLabel, self).__init__()
 
         self.gamma_neg = gamma_neg
@@ -51,7 +56,11 @@ class AsymmetricLossMultiLabel(nn.Module):
 
 
 class AsymmetricLossSingleLabel(nn.Module):
-    def __init__(self, gamma_pos=1, gamma_neg=4, eps: float = 0.1, reduction='mean'):
+    def __init__(self,
+                 gamma_pos=1,
+                 gamma_neg=4,
+                 eps: float = 0.1,
+                 reduction='mean'):
         super(AsymmetricLossSingleLabel, self).__init__()
 
         self.eps = eps
@@ -71,7 +80,9 @@ class AsymmetricLossSingleLabel(nn.Module):
 
         num_classes = inputs.size()[-1]
         log_preds = self.logsoftmax(inputs)
-        self.targets_classes = torch.zeros_like(inputs).scatter_(1, target.long().unsqueeze(1), 1)
+        self.targets_classes = torch.zeros_like(inputs).scatter_(
+            1,
+            target.long().unsqueeze(1), 1)
 
         # ASL weights
         targets = self.targets_classes
@@ -80,15 +91,17 @@ class AsymmetricLossSingleLabel(nn.Module):
         xs_neg = 1 - xs_pos
         xs_pos = xs_pos * targets
         xs_neg = xs_neg * anti_targets
-        asymmetric_w = torch.pow(1 - xs_pos - xs_neg,
-                                 self.gamma_pos * targets + self.gamma_neg * anti_targets)
+        asymmetric_w = torch.pow(
+            1 - xs_pos - xs_neg,
+            self.gamma_pos * targets + self.gamma_neg * anti_targets)
         log_preds = log_preds * asymmetric_w
 
         if self.eps > 0:  # label smoothing
-            self.targets_classes.mul_(1 - self.eps).add_(self.eps / num_classes)
+            self.targets_classes.mul_(1 - self.eps).add_(self.eps /
+                                                         num_classes)
 
         # loss calculation
-        loss = - self.targets_classes.mul(log_preds)
+        loss = -self.targets_classes.mul(log_preds)
 
         loss = loss.sum(dim=-1)
         if self.reduction == 'mean':

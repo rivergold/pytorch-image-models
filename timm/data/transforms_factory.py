@@ -34,9 +34,8 @@ def transforms_noaug_train(
     else:
         tfl += [
             transforms.ToTensor(),
-            transforms.Normalize(
-                mean=torch.tensor(mean),
-                std=torch.tensor(std))
+            transforms.Normalize(mean=torch.tensor(mean),
+                                 std=torch.tensor(std))
         ]
     return transforms.Compose(tfl)
 
@@ -67,9 +66,13 @@ def transforms_imagenet_train(
      * normalizes and converts the branches above with the third, final transform
     """
     scale = tuple(scale or (0.08, 1.0))  # default imagenet scale range
-    ratio = tuple(ratio or (3./4., 4./3.))  # default imagenet ratio range
+    ratio = tuple(ratio or (3. / 4., 4. / 3.))  # default imagenet ratio range
     primary_tfl = [
-        RandomResizedCropAndInterpolation(img_size, scale=scale, ratio=ratio, interpolation=interpolation)]
+        RandomResizedCropAndInterpolation(img_size,
+                                          scale=scale,
+                                          ratio=ratio,
+                                          interpolation=interpolation)
+    ]
     if hflip > 0.:
         primary_tfl += [transforms.RandomHorizontalFlip(p=hflip)]
     if vflip > 0.:
@@ -92,7 +95,9 @@ def transforms_imagenet_train(
             secondary_tfl += [rand_augment_transform(auto_augment, aa_params)]
         elif auto_augment.startswith('augmix'):
             aa_params['translate_pct'] = 0.3
-            secondary_tfl += [augment_and_mix_transform(auto_augment, aa_params)]
+            secondary_tfl += [
+                augment_and_mix_transform(auto_augment, aa_params)
+            ]
         else:
             secondary_tfl += [auto_augment_transform(auto_augment, aa_params)]
     elif color_jitter is not None:
@@ -103,7 +108,7 @@ def transforms_imagenet_train(
             assert len(color_jitter) in (3, 4)
         else:
             # if it's a scalar, duplicate for brightness, contrast, and saturation, no hue
-            color_jitter = (float(color_jitter),) * 3
+            color_jitter = (float(color_jitter), ) * 3
         secondary_tfl += [transforms.ColorJitter(*color_jitter)]
 
     final_tfl = []
@@ -113,27 +118,30 @@ def transforms_imagenet_train(
     else:
         final_tfl += [
             transforms.ToTensor(),
-            transforms.Normalize(
-                mean=torch.tensor(mean),
-                std=torch.tensor(std))
+            transforms.Normalize(mean=torch.tensor(mean),
+                                 std=torch.tensor(std))
         ]
         if re_prob > 0.:
             final_tfl.append(
-                RandomErasing(re_prob, mode=re_mode, max_count=re_count, num_splits=re_num_splits, device='cpu'))
+                RandomErasing(re_prob,
+                              mode=re_mode,
+                              max_count=re_count,
+                              num_splits=re_num_splits,
+                              device='cpu'))
 
     if separate:
-        return transforms.Compose(primary_tfl), transforms.Compose(secondary_tfl), transforms.Compose(final_tfl)
+        return transforms.Compose(primary_tfl), transforms.Compose(
+            secondary_tfl), transforms.Compose(final_tfl)
     else:
         return transforms.Compose(primary_tfl + secondary_tfl + final_tfl)
 
 
-def transforms_imagenet_eval(
-        img_size=224,
-        crop_pct=None,
-        interpolation='bilinear',
-        use_prefetcher=False,
-        mean=IMAGENET_DEFAULT_MEAN,
-        std=IMAGENET_DEFAULT_STD):
+def transforms_imagenet_eval(img_size=224,
+                             crop_pct=None,
+                             interpolation='bilinear',
+                             use_prefetcher=False,
+                             mean=IMAGENET_DEFAULT_MEAN,
+                             std=IMAGENET_DEFAULT_STD):
     crop_pct = crop_pct or DEFAULT_CROP_PCT
 
     if isinstance(img_size, tuple):
@@ -156,35 +164,33 @@ def transforms_imagenet_eval(
     else:
         tfl += [
             transforms.ToTensor(),
-            transforms.Normalize(
-                     mean=torch.tensor(mean),
-                     std=torch.tensor(std))
+            transforms.Normalize(mean=torch.tensor(mean),
+                                 std=torch.tensor(std))
         ]
 
     return transforms.Compose(tfl)
 
 
-def create_transform(
-        input_size,
-        is_training=False,
-        use_prefetcher=False,
-        no_aug=False,
-        scale=None,
-        ratio=None,
-        hflip=0.5,
-        vflip=0.,
-        color_jitter=0.4,
-        auto_augment=None,
-        interpolation='bilinear',
-        mean=IMAGENET_DEFAULT_MEAN,
-        std=IMAGENET_DEFAULT_STD,
-        re_prob=0.,
-        re_mode='const',
-        re_count=1,
-        re_num_splits=0,
-        crop_pct=None,
-        tf_preprocessing=False,
-        separate=False):
+def create_transform(input_size,
+                     is_training=False,
+                     use_prefetcher=False,
+                     no_aug=False,
+                     scale=None,
+                     ratio=None,
+                     hflip=0.5,
+                     vflip=0.,
+                     color_jitter=0.4,
+                     auto_augment=None,
+                     interpolation='bilinear',
+                     mean=IMAGENET_DEFAULT_MEAN,
+                     std=IMAGENET_DEFAULT_STD,
+                     re_prob=0.,
+                     re_mode='const',
+                     re_count=1,
+                     re_num_splits=0,
+                     crop_pct=None,
+                     tf_preprocessing=False,
+                     separate=False):
 
     if isinstance(input_size, tuple):
         img_size = input_size[-2:]
@@ -194,17 +200,17 @@ def create_transform(
     if tf_preprocessing and use_prefetcher:
         assert not separate, "Separate transforms not supported for TF preprocessing"
         from timm.data.tf_preprocessing import TfPreprocessTransform
-        transform = TfPreprocessTransform(
-            is_training=is_training, size=img_size, interpolation=interpolation)
+        transform = TfPreprocessTransform(is_training=is_training,
+                                          size=img_size,
+                                          interpolation=interpolation)
     else:
         if is_training and no_aug:
             assert not separate, "Cannot perform split augmentation with no_aug"
-            transform = transforms_noaug_train(
-                img_size,
-                interpolation=interpolation,
-                use_prefetcher=use_prefetcher,
-                mean=mean,
-                std=std)
+            transform = transforms_noaug_train(img_size,
+                                               interpolation=interpolation,
+                                               use_prefetcher=use_prefetcher,
+                                               mean=mean,
+                                               std=std)
         elif is_training:
             transform = transforms_imagenet_train(
                 img_size,
@@ -225,12 +231,11 @@ def create_transform(
                 separate=separate)
         else:
             assert not separate, "Separate transforms not supported for validation preprocessing"
-            transform = transforms_imagenet_eval(
-                img_size,
-                interpolation=interpolation,
-                use_prefetcher=use_prefetcher,
-                mean=mean,
-                std=std,
-                crop_pct=crop_pct)
+            transform = transforms_imagenet_eval(img_size,
+                                                 interpolation=interpolation,
+                                                 use_prefetcher=use_prefetcher,
+                                                 mean=mean,
+                                                 std=std,
+                                                 crop_pct=crop_pct)
 
     return transform

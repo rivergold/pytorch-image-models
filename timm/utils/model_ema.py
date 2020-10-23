@@ -61,7 +61,9 @@ class ModelEma:
             self.ema.load_state_dict(new_state_dict)
             _logger.info("Loaded state_dict_ema")
         else:
-            _logger.warning("Failed to find state_dict_ema, starting from loaded model weights")
+            _logger.warning(
+                "Failed to find state_dict_ema, starting from loaded model weights"
+            )
 
     def update(self, model):
         # correct a mismatch in state dict keys

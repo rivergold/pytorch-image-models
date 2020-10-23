@@ -8,7 +8,10 @@ from torch.nn import functional as F
 from .adaptive_avgmax_pool import SelectAdaptivePool2d
 
 
-def create_classifier(num_features, num_classes, pool_type='avg', use_conv=False):
+def create_classifier(num_features,
+                      num_classes,
+                      pool_type='avg',
+                      use_conv=False):
     flatten = not use_conv  # flatten when we use a Linear layer after pooling
     if not pool_type:
         assert num_classes == 0 or use_conv,\
@@ -27,11 +30,12 @@ def create_classifier(num_features, num_classes, pool_type='avg', use_conv=False
 
 class ClassifierHead(nn.Module):
     """Classifier head w/ configurable global pooling and dropout."""
-
     def __init__(self, in_chs, num_classes, pool_type='avg', drop_rate=0.):
         super(ClassifierHead, self).__init__()
         self.drop_rate = drop_rate
-        self.global_pool, self.fc = create_classifier(in_chs, num_classes, pool_type=pool_type)
+        self.global_pool, self.fc = create_classifier(in_chs,
+                                                      num_classes,
+                                                      pool_type=pool_type)
 
     def forward(self, x):
         x = self.global_pool(x)

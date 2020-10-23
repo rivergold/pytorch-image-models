@@ -48,7 +48,8 @@ class MishJit(nn.Module):
 @torch.jit.script
 def hard_sigmoid_jit(x, inplace: bool = False):
     # return F.relu6(x + 3.) / 6.
-    return (x + 3).clamp(min=0, max=6).div(6.)  # clamp seems ever so slightly faster?
+    return (x + 3).clamp(min=0,
+                         max=6).div(6.)  # clamp seems ever so slightly faster?
 
 
 class HardSigmoidJit(nn.Module):
@@ -62,7 +63,8 @@ class HardSigmoidJit(nn.Module):
 @torch.jit.script
 def hard_swish_jit(x, inplace: bool = False):
     # return x * (F.relu6(x + 3.) / 6)
-    return x * (x + 3).clamp(min=0, max=6).div(6.)  # clamp seems ever so slightly faster?
+    return x * (x + 3).clamp(min=0, max=6).div(
+        6.)  # clamp seems ever so slightly faster?
 
 
 class HardSwishJit(nn.Module):

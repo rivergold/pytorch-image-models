@@ -7,10 +7,19 @@ try:
 except ImportError:
     has_iabn = False
 
-    def inplace_abn(x, weight, bias, running_mean, running_var,
-                    training=True, momentum=0.1, eps=1e-05, activation="leaky_relu", activation_param=0.01):
+    def inplace_abn(x,
+                    weight,
+                    bias,
+                    running_mean,
+                    running_var,
+                    training=True,
+                    momentum=0.1,
+                    eps=1e-05,
+                    activation="leaky_relu",
+                    activation_param=0.01):
         raise ImportError(
-            "Please install InplaceABN:'pip install git+https://github.com/mapillary/inplace_abn.git@v1.0.11'")
+            "Please install InplaceABN:'pip install git+https://github.com/mapillary/inplace_abn.git@v1.0.11'"
+        )
 
     def inplace_abn_sync(**kwargs):
         inplace_abn(**kwargs)
@@ -36,9 +45,15 @@ class InplaceAbn(nn.Module):
     act_param : float
         Negative slope for the `leaky_relu` activation.
     """
-
-    def __init__(self, num_features, eps=1e-5, momentum=0.1, affine=True, apply_act=True,
-                 act_layer="leaky_relu", act_param=0.01, drop_block=None):
+    def __init__(self,
+                 num_features,
+                 eps=1e-5,
+                 momentum=0.1,
+                 affine=True,
+                 apply_act=True,
+                 act_layer="leaky_relu",
+                 act_param=0.01,
+                 drop_block=None):
         super(InplaceAbn, self).__init__()
         self.num_features = num_features
         self.affine = affine
@@ -79,9 +94,9 @@ class InplaceAbn(nn.Module):
             nn.init.constant_(self.bias, 0)
 
     def forward(self, x):
-        output = inplace_abn(
-            x, self.weight, self.bias, self.running_mean, self.running_var,
-            self.training, self.momentum, self.eps, self.act_name, self.act_param)
+        output = inplace_abn(x, self.weight, self.bias, self.running_mean,
+                             self.running_var, self.training, self.momentum,
+                             self.eps, self.act_name, self.act_param)
         if isinstance(output, tuple):
             output = output[0]
         return output

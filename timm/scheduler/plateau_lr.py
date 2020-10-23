@@ -11,25 +11,25 @@ from .scheduler import Scheduler
 
 class PlateauLRScheduler(Scheduler):
     """Decay the LR by a factor every time the validation loss plateaus."""
-
-    def __init__(self,
-                 optimizer,
-                 decay_rate=0.1,
-                 patience_t=10,
-                 verbose=True,
-                 threshold=1e-4,
-                 cooldown_t=0,
-                 warmup_t=0,
-                 warmup_lr_init=0,
-                 lr_min=0,
-                 mode='max',
-                 noise_range_t=None,
-                 noise_type='normal',
-                 noise_pct=0.67,
-                 noise_std=1.0,
-                 noise_seed=None,
-                 initialize=True,
-                 ):
+    def __init__(
+            self,
+            optimizer,
+            decay_rate=0.1,
+            patience_t=10,
+            verbose=True,
+            threshold=1e-4,
+            cooldown_t=0,
+            warmup_t=0,
+            warmup_lr_init=0,
+            lr_min=0,
+            mode='max',
+            noise_range_t=None,
+            noise_type='normal',
+            noise_pct=0.67,
+            noise_std=1.0,
+            noise_seed=None,
+            initialize=True,
+    ):
         super().__init__(optimizer, 'lr', initialize=initialize)
 
         self.lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
@@ -40,8 +40,7 @@ class PlateauLRScheduler(Scheduler):
             threshold=threshold,
             cooldown=cooldown_t,
             mode=mode,
-            min_lr=lr_min
-        )
+            min_lr=lr_min)
 
         self.noise_range = noise_range_t
         self.noise_pct = noise_pct
@@ -51,7 +50,8 @@ class PlateauLRScheduler(Scheduler):
         self.warmup_t = warmup_t
         self.warmup_lr_init = warmup_lr_init
         if self.warmup_t:
-            self.warmup_steps = [(v - warmup_lr_init) / self.warmup_t for v in self.base_values]
+            self.warmup_steps = [(v - warmup_lr_init) / self.warmup_t
+                                 for v in self.base_values]
             super().update_groups(self.warmup_lr_init)
         else:
             self.warmup_steps = [1 for _ in self.base_values]
@@ -84,7 +84,8 @@ class PlateauLRScheduler(Scheduler):
 
             if self.noise_range is not None:
                 if isinstance(self.noise_range, (list, tuple)):
-                    apply_noise = self.noise_range[0] <= epoch < self.noise_range[1]
+                    apply_noise = self.noise_range[
+                        0] <= epoch < self.noise_range[1]
                 else:
                     apply_noise = epoch >= self.noise_range
                 if apply_noise:
@@ -100,7 +101,8 @@ class PlateauLRScheduler(Scheduler):
                 if abs(noise) < self.noise_pct:
                     break
         else:
-            noise = 2 * (torch.rand(1, generator=g).item() - 0.5) * self.noise_pct
+            noise = 2 * (torch.rand(1, generator=g).item() -
+                         0.5) * self.noise_pct
 
         # apply the noise on top of previous LR, cache the old value so we can restore for normal
         # stepping of base scheduler

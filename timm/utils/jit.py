@@ -11,7 +11,9 @@ def set_jit_legacy():
     in the JIT exectutor. These API are not supported so could change.
     """
     #
-    assert hasattr(torch._C, '_jit_set_profiling_executor'), "Old JIT behavior doesn't exist!"
+    assert hasattr(
+        torch._C,
+        '_jit_set_profiling_executor'), "Old JIT behavior doesn't exist!"
     torch._C._jit_set_profiling_executor(False)
     torch._C._jit_set_profiling_mode(False)
     torch._C._jit_override_can_fuse_on_gpu(True)

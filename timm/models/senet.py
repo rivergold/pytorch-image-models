@@ -27,35 +27,65 @@ __all__ = ['SENet']
 
 def _cfg(url='', **kwargs):
     return {
-        'url': url, 'num_classes': 1000, 'input_size': (3, 224, 224), 'pool_size': (7, 7),
-        'crop_pct': 0.875, 'interpolation': 'bilinear',
-        'mean': IMAGENET_DEFAULT_MEAN, 'std': IMAGENET_DEFAULT_STD,
-        'first_conv': 'layer0.conv1', 'classifier': 'last_linear',
+        'url': url,
+        'num_classes': 1000,
+        'input_size': (3, 224, 224),
+        'pool_size': (7, 7),
+        'crop_pct': 0.875,
+        'interpolation': 'bilinear',
+        'mean': IMAGENET_DEFAULT_MEAN,
+        'std': IMAGENET_DEFAULT_STD,
+        'first_conv': 'layer0.conv1',
+        'classifier': 'last_linear',
         **kwargs
     }
 
 
 default_cfgs = {
     'legacy_senet154':
-        _cfg(url='http://data.lip6.fr/cadene/pretrainedmodels/senet154-c7b49a05.pth'),
-    'legacy_seresnet18': _cfg(
-        url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/seresnet18-4bb0ce65.pth',
+    _cfg(
+        url='http://data.lip6.fr/cadene/pretrainedmodels/senet154-c7b49a05.pth'
+    ),
+    'legacy_seresnet18':
+    _cfg(
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/seresnet18-4bb0ce65.pth',
         interpolation='bicubic'),
-    'legacy_seresnet34': _cfg(
-        url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/seresnet34-a4004e63.pth'),
-    'legacy_seresnet50': _cfg(
-        url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-cadene/se_resnet50-ce0d4300.pth'),
-    'legacy_seresnet101': _cfg(
-        url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-cadene/se_resnet101-7e38fcc6.pth'),
-    'legacy_seresnet152': _cfg(
-        url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-cadene/se_resnet152-d17c99b7.pth'),
-    'legacy_seresnext26_32x4d': _cfg(
-        url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/seresnext26_32x4d-65ebdb501.pth',
+    'legacy_seresnet34':
+    _cfg(
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/seresnet34-a4004e63.pth'
+    ),
+    'legacy_seresnet50':
+    _cfg(
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-cadene/se_resnet50-ce0d4300.pth'
+    ),
+    'legacy_seresnet101':
+    _cfg(
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-cadene/se_resnet101-7e38fcc6.pth'
+    ),
+    'legacy_seresnet152':
+    _cfg(
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-cadene/se_resnet152-d17c99b7.pth'
+    ),
+    'legacy_seresnext26_32x4d':
+    _cfg(
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/seresnext26_32x4d-65ebdb501.pth',
         interpolation='bicubic'),
     'legacy_seresnext50_32x4d':
-        _cfg(url='http://data.lip6.fr/cadene/pretrainedmodels/se_resnext50_32x4d-a260b3a4.pth'),
+    _cfg(
+        url=
+        'http://data.lip6.fr/cadene/pretrainedmodels/se_resnext50_32x4d-a260b3a4.pth'
+    ),
     'legacy_seresnext101_32x4d':
-        _cfg(url='http://data.lip6.fr/cadene/pretrainedmodels/se_resnext101_32x4d-3b2fe3d8.pth'),
+    _cfg(
+        url=
+        'http://data.lip6.fr/cadene/pretrainedmodels/se_resnext101_32x4d-3b2fe3d8.pth'
+    ),
 }
 
 
@@ -68,7 +98,6 @@ def _weight_init(m):
 
 
 class SEModule(nn.Module):
-
     def __init__(self, channels, reduction):
         super(SEModule, self).__init__()
         self.fc1 = nn.Conv2d(channels, channels // reduction, kernel_size=1)
@@ -90,7 +119,6 @@ class Bottleneck(nn.Module):
     """
     Base class for bottlenecks that implements `forward()` method.
     """
-
     def forward(self, x):
         residual = x
 
@@ -120,17 +148,28 @@ class SEBottleneck(Bottleneck):
     """
     expansion = 4
 
-    def __init__(self, inplanes, planes, groups, reduction, stride=1,
+    def __init__(self,
+                 inplanes,
+                 planes,
+                 groups,
+                 reduction,
+                 stride=1,
                  downsample=None):
         super(SEBottleneck, self).__init__()
         self.conv1 = nn.Conv2d(inplanes, planes * 2, kernel_size=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes * 2)
-        self.conv2 = nn.Conv2d(
-            planes * 2, planes * 4, kernel_size=3, stride=stride,
-            padding=1, groups=groups, bias=False)
+        self.conv2 = nn.Conv2d(planes * 2,
+                               planes * 4,
+                               kernel_size=3,
+                               stride=stride,
+                               padding=1,
+                               groups=groups,
+                               bias=False)
         self.bn2 = nn.BatchNorm2d(planes * 4)
-        self.conv3 = nn.Conv2d(
-            planes * 4, planes * 4, kernel_size=1, bias=False)
+        self.conv3 = nn.Conv2d(planes * 4,
+                               planes * 4,
+                               kernel_size=1,
+                               bias=False)
         self.bn3 = nn.BatchNorm2d(planes * 4)
         self.relu = nn.ReLU(inplace=True)
         self.se_module = SEModule(planes * 4, reduction=reduction)
@@ -146,14 +185,26 @@ class SEResNetBottleneck(Bottleneck):
     """
     expansion = 4
 
-    def __init__(self, inplanes, planes, groups, reduction, stride=1,
+    def __init__(self,
+                 inplanes,
+                 planes,
+                 groups,
+                 reduction,
+                 stride=1,
                  downsample=None):
         super(SEResNetBottleneck, self).__init__()
-        self.conv1 = nn.Conv2d(
-            inplanes, planes, kernel_size=1, bias=False, stride=stride)
+        self.conv1 = nn.Conv2d(inplanes,
+                               planes,
+                               kernel_size=1,
+                               bias=False,
+                               stride=stride)
         self.bn1 = nn.BatchNorm2d(planes)
-        self.conv2 = nn.Conv2d(
-            planes, planes, kernel_size=3, padding=1, groups=groups, bias=False)
+        self.conv2 = nn.Conv2d(planes,
+                               planes,
+                               kernel_size=3,
+                               padding=1,
+                               groups=groups,
+                               bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
         self.conv3 = nn.Conv2d(planes, planes * 4, kernel_size=1, bias=False)
         self.bn3 = nn.BatchNorm2d(planes * 4)
@@ -169,15 +220,29 @@ class SEResNeXtBottleneck(Bottleneck):
     """
     expansion = 4
 
-    def __init__(self, inplanes, planes, groups, reduction, stride=1,
-                 downsample=None, base_width=4):
+    def __init__(self,
+                 inplanes,
+                 planes,
+                 groups,
+                 reduction,
+                 stride=1,
+                 downsample=None,
+                 base_width=4):
         super(SEResNeXtBottleneck, self).__init__()
         width = math.floor(planes * (base_width / 64)) * groups
-        self.conv1 = nn.Conv2d(
-            inplanes, width, kernel_size=1, bias=False, stride=1)
+        self.conv1 = nn.Conv2d(inplanes,
+                               width,
+                               kernel_size=1,
+                               bias=False,
+                               stride=1)
         self.bn1 = nn.BatchNorm2d(width)
-        self.conv2 = nn.Conv2d(
-            width, width, kernel_size=3, stride=stride, padding=1, groups=groups, bias=False)
+        self.conv2 = nn.Conv2d(width,
+                               width,
+                               kernel_size=3,
+                               stride=stride,
+                               padding=1,
+                               groups=groups,
+                               bias=False)
         self.bn2 = nn.BatchNorm2d(width)
         self.conv3 = nn.Conv2d(width, planes * 4, kernel_size=1, bias=False)
         self.bn3 = nn.BatchNorm2d(planes * 4)
@@ -190,13 +255,27 @@ class SEResNeXtBottleneck(Bottleneck):
 class SEResNetBlock(nn.Module):
     expansion = 1
 
-    def __init__(self, inplanes, planes, groups, reduction, stride=1, downsample=None):
+    def __init__(self,
+                 inplanes,
+                 planes,
+                 groups,
+                 reduction,
+                 stride=1,
+                 downsample=None):
         super(SEResNetBlock, self).__init__()
-        self.conv1 = nn.Conv2d(
-            inplanes, planes, kernel_size=3, padding=1, stride=stride, bias=False)
+        self.conv1 = nn.Conv2d(inplanes,
+                               planes,
+                               kernel_size=3,
+                               padding=1,
+                               stride=stride,
+                               bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
-        self.conv2 = nn.Conv2d(
-            planes, planes, kernel_size=3, padding=1, groups=groups, bias=False)
+        self.conv2 = nn.Conv2d(planes,
+                               planes,
+                               kernel_size=3,
+                               padding=1,
+                               groups=groups,
+                               bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
         self.relu = nn.ReLU(inplace=True)
         self.se_module = SEModule(planes, reduction=reduction)
@@ -224,10 +303,19 @@ class SEResNetBlock(nn.Module):
 
 
 class SENet(nn.Module):
-
-    def __init__(self, block, layers, groups, reduction, drop_rate=0.2,
-                 in_chans=3, inplanes=64, input_3x3=False, downsample_kernel_size=1,
-                 downsample_padding=0, num_classes=1000, global_pool='avg'):
+    def __init__(self,
+                 block,
+                 layers,
+                 groups,
+                 reduction,
+                 drop_rate=0.2,
+                 in_chans=3,
+                 inplanes=64,
+                 input_3x3=False,
+                 downsample_kernel_size=1,
+                 downsample_padding=0,
+                 num_classes=1000,
+                 global_pool='avg'):
         """
         Parameters
         ----------
@@ -277,37 +365,47 @@ class SENet(nn.Module):
         self.drop_rate = drop_rate
         if input_3x3:
             layer0_modules = [
-                ('conv1', nn.Conv2d(in_chans, 64, 3, stride=2, padding=1, bias=False)),
+                ('conv1',
+                 nn.Conv2d(in_chans, 64, 3, stride=2, padding=1, bias=False)),
                 ('bn1', nn.BatchNorm2d(64)),
                 ('relu1', nn.ReLU(inplace=True)),
-                ('conv2', nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False)),
+                ('conv2', nn.Conv2d(64, 64, 3, stride=1, padding=1,
+                                    bias=False)),
                 ('bn2', nn.BatchNorm2d(64)),
                 ('relu2', nn.ReLU(inplace=True)),
-                ('conv3', nn.Conv2d(64, inplanes, 3, stride=1, padding=1, bias=False)),
+                ('conv3',
+                 nn.Conv2d(64, inplanes, 3, stride=1, padding=1, bias=False)),
                 ('bn3', nn.BatchNorm2d(inplanes)),
                 ('relu3', nn.ReLU(inplace=True)),
             ]
         else:
             layer0_modules = [
-                ('conv1', nn.Conv2d(
-                    in_chans, inplanes, kernel_size=7, stride=2, padding=3, bias=False)),
+                ('conv1',
+                 nn.Conv2d(in_chans,
+                           inplanes,
+                           kernel_size=7,
+                           stride=2,
+                           padding=3,
+                           bias=False)),
                 ('bn1', nn.BatchNorm2d(inplanes)),
                 ('relu1', nn.ReLU(inplace=True)),
             ]
         self.layer0 = nn.Sequential(OrderedDict(layer0_modules))
         # To preserve compatibility with Caffe weights `ceil_mode=True` is used instead of `padding=1`.
         self.pool0 = nn.MaxPool2d(3, stride=2, ceil_mode=True)
-        self.feature_info = [dict(num_chs=inplanes, reduction=2, module='layer0')]
-        self.layer1 = self._make_layer(
-            block,
-            planes=64,
-            blocks=layers[0],
-            groups=groups,
-            reduction=reduction,
-            downsample_kernel_size=1,
-            downsample_padding=0
-        )
-        self.feature_info += [dict(num_chs=64 * block.expansion, reduction=4, module='layer1')]
+        self.feature_info = [
+            dict(num_chs=inplanes, reduction=2, module='layer0')
+        ]
+        self.layer1 = self._make_layer(block,
+                                       planes=64,
+                                       blocks=layers[0],
+                                       groups=groups,
+                                       reduction=reduction,
+                                       downsample_kernel_size=1,
+                                       downsample_padding=0)
+        self.feature_info += [
+            dict(num_chs=64 * block.expansion, reduction=4, module='layer1')
+        ]
         self.layer2 = self._make_layer(
             block,
             planes=128,
@@ -316,9 +414,10 @@ class SENet(nn.Module):
             groups=groups,
             reduction=reduction,
             downsample_kernel_size=downsample_kernel_size,
-            downsample_padding=downsample_padding
-        )
-        self.feature_info += [dict(num_chs=128 * block.expansion, reduction=8, module='layer2')]
+            downsample_padding=downsample_padding)
+        self.feature_info += [
+            dict(num_chs=128 * block.expansion, reduction=8, module='layer2')
+        ]
         self.layer3 = self._make_layer(
             block,
             planes=256,
@@ -327,9 +426,10 @@ class SENet(nn.Module):
             groups=groups,
             reduction=reduction,
             downsample_kernel_size=downsample_kernel_size,
-            downsample_padding=downsample_padding
-        )
-        self.feature_info += [dict(num_chs=256 * block.expansion, reduction=16, module='layer3')]
+            downsample_padding=downsample_padding)
+        self.feature_info += [
+            dict(num_chs=256 * block.expansion, reduction=16, module='layer3')
+        ]
         self.layer4 = self._make_layer(
             block,
             planes=512,
@@ -338,9 +438,10 @@ class SENet(nn.Module):
             groups=groups,
             reduction=reduction,
             downsample_kernel_size=downsample_kernel_size,
-            downsample_padding=downsample_padding
-        )
-        self.feature_info += [dict(num_chs=512 * block.expansion, reduction=32, module='layer4')]
+            downsample_padding=downsample_padding)
+        self.feature_info += [
+            dict(num_chs=512 * block.expansion, reduction=32, module='layer4')
+        ]
         self.num_features = 512 * block.expansion
         self.global_pool, self.last_linear = create_classifier(
             self.num_features, self.num_classes, pool_type=global_pool)
@@ -348,18 +449,30 @@ class SENet(nn.Module):
         for m in self.modules():
             _weight_init(m)
 
-    def _make_layer(self, block, planes, blocks, groups, reduction, stride=1,
-                    downsample_kernel_size=1, downsample_padding=0):
+    def _make_layer(self,
+                    block,
+                    planes,
+                    blocks,
+                    groups,
+                    reduction,
+                    stride=1,
+                    downsample_kernel_size=1,
+                    downsample_padding=0):
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
-                nn.Conv2d(
-                    self.inplanes, planes * block.expansion, kernel_size=downsample_kernel_size,
-                    stride=stride, padding=downsample_padding, bias=False),
+                nn.Conv2d(self.inplanes,
+                          planes * block.expansion,
+                          kernel_size=downsample_kernel_size,
+                          stride=stride,
+                          padding=downsample_padding,
+                          bias=False),
                 nn.BatchNorm2d(planes * block.expansion),
             )
 
-        layers = [block(self.inplanes, planes, groups, reduction, stride, downsample)]
+        layers = [
+            block(self.inplanes, planes, groups, reduction, stride, downsample)
+        ]
         self.inplanes = planes * block.expansion
         for i in range(1, blocks):
             layers.append(block(self.inplanes, planes, groups, reduction))
@@ -397,69 +510,102 @@ class SENet(nn.Module):
 
 
 def _create_senet(variant, pretrained=False, **kwargs):
-    return build_model_with_cfg(
-        SENet, variant, default_cfg=default_cfgs[variant], pretrained=pretrained, **kwargs)
+    return build_model_with_cfg(SENet,
+                                variant,
+                                default_cfg=default_cfgs[variant],
+                                pretrained=pretrained,
+                                **kwargs)
 
 
 @register_model
 def legacy_seresnet18(pretrained=False, **kwargs):
-    model_args = dict(
-        block=SEResNetBlock, layers=[2, 2, 2, 2], groups=1, reduction=16, **kwargs)
+    model_args = dict(block=SEResNetBlock,
+                      layers=[2, 2, 2, 2],
+                      groups=1,
+                      reduction=16,
+                      **kwargs)
     return _create_senet('legacy_seresnet18', pretrained, **model_args)
 
 
 @register_model
 def legacy_seresnet34(pretrained=False, **kwargs):
-    model_args = dict(
-        block=SEResNetBlock, layers=[3, 4, 6, 3], groups=1, reduction=16, **kwargs)
+    model_args = dict(block=SEResNetBlock,
+                      layers=[3, 4, 6, 3],
+                      groups=1,
+                      reduction=16,
+                      **kwargs)
     return _create_senet('legacy_seresnet34', pretrained, **model_args)
 
 
 @register_model
 def legacy_seresnet50(pretrained=False, **kwargs):
-    model_args = dict(
-        block=SEResNetBottleneck, layers=[3, 4, 6, 3], groups=1, reduction=16, **kwargs)
+    model_args = dict(block=SEResNetBottleneck,
+                      layers=[3, 4, 6, 3],
+                      groups=1,
+                      reduction=16,
+                      **kwargs)
     return _create_senet('legacy_seresnet50', pretrained, **model_args)
 
 
 @register_model
 def legacy_seresnet101(pretrained=False, **kwargs):
-    model_args = dict(
-        block=SEResNetBottleneck, layers=[3, 4, 23, 3], groups=1, reduction=16, **kwargs)
+    model_args = dict(block=SEResNetBottleneck,
+                      layers=[3, 4, 23, 3],
+                      groups=1,
+                      reduction=16,
+                      **kwargs)
     return _create_senet('legacy_seresnet101', pretrained, **model_args)
 
 
 @register_model
 def legacy_seresnet152(pretrained=False, **kwargs):
-    model_args = dict(
-        block=SEResNetBottleneck, layers=[3, 8, 36, 3], groups=1, reduction=16, **kwargs)
+    model_args = dict(block=SEResNetBottleneck,
+                      layers=[3, 8, 36, 3],
+                      groups=1,
+                      reduction=16,
+                      **kwargs)
     return _create_senet('legacy_seresnet152', pretrained, **model_args)
 
 
 @register_model
 def legacy_senet154(pretrained=False, **kwargs):
-    model_args = dict(
-        block=SEBottleneck, layers=[3, 8, 36, 3], groups=64, reduction=16,
-        downsample_kernel_size=3, downsample_padding=1,  inplanes=128, input_3x3=True, **kwargs)
+    model_args = dict(block=SEBottleneck,
+                      layers=[3, 8, 36, 3],
+                      groups=64,
+                      reduction=16,
+                      downsample_kernel_size=3,
+                      downsample_padding=1,
+                      inplanes=128,
+                      input_3x3=True,
+                      **kwargs)
     return _create_senet('legacy_senet154', pretrained, **model_args)
 
 
 @register_model
 def legacy_seresnext26_32x4d(pretrained=False, **kwargs):
-    model_args = dict(
-        block=SEResNeXtBottleneck, layers=[2, 2, 2, 2], groups=32, reduction=16, **kwargs)
+    model_args = dict(block=SEResNeXtBottleneck,
+                      layers=[2, 2, 2, 2],
+                      groups=32,
+                      reduction=16,
+                      **kwargs)
     return _create_senet('legacy_seresnext26_32x4d', pretrained, **model_args)
 
 
 @register_model
 def legacy_seresnext50_32x4d(pretrained=False, **kwargs):
-    model_args = dict(
-        block=SEResNeXtBottleneck, layers=[3, 4, 6, 3], groups=32, reduction=16, **kwargs)
+    model_args = dict(block=SEResNeXtBottleneck,
+                      layers=[3, 4, 6, 3],
+                      groups=32,
+                      reduction=16,
+                      **kwargs)
     return _create_senet('legacy_seresnext50_32x4d', pretrained, **model_args)
 
 
 @register_model
 def legacy_seresnext101_32x4d(pretrained=False, **kwargs):
-    model_args = dict(
-        block=SEResNeXtBottleneck, layers=[3, 4, 23, 3], groups=32, reduction=16, **kwargs)
+    model_args = dict(block=SEResNeXtBottleneck,
+                      layers=[3, 4, 23, 3],
+                      groups=32,
+                      reduction=16,
+                      **kwargs)
     return _create_senet('legacy_seresnext101_32x4d', pretrained, **model_args)

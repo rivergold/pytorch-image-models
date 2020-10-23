@@ -28,13 +28,18 @@ def add_weight_decay(model, weight_decay=1e-5, skip_list=()):
     for name, param in model.named_parameters():
         if not param.requires_grad:
             continue  # frozen weights
-        if len(param.shape) == 1 or name.endswith(".bias") or name in skip_list:
+        if len(param.shape) == 1 or name.endswith(
+                ".bias") or name in skip_list:
             no_decay.append(param)
         else:
             decay.append(param)
-    return [
-        {'params': no_decay, 'weight_decay': 0.},
-        {'params': decay, 'weight_decay': weight_decay}]
+    return [{
+        'params': no_decay,
+        'weight_decay': 0.
+    }, {
+        'params': decay,
+        'weight_decay': weight_decay
+    }]
 
 
 def create_optimizer(args, model, filter_bias_and_bn=True):
@@ -50,7 +55,8 @@ def create_optimizer(args, model, filter_bias_and_bn=True):
         parameters = model.parameters()
 
     if 'fused' in opt_lower:
-        assert has_apex and torch.cuda.is_available(), 'APEX and CUDA required for fused optimizers'
+        assert has_apex and torch.cuda.is_available(
+        ), 'APEX and CUDA required for fused optimizers'
 
     opt_args = dict(lr=args.lr, weight_decay=weight_decay)
     if hasattr(args, 'opt_eps') and args.opt_eps is not None:
@@ -62,10 +68,16 @@ def create_optimizer(args, model, filter_bias_and_bn=True):
     opt_lower = opt_split[-1]
     if opt_lower == 'sgd' or opt_lower == 'nesterov':
         del opt_args['eps']
-        optimizer = optim.SGD(parameters, momentum=args.momentum, nesterov=True, **opt_args)
+        optimizer = optim.SGD(parameters,
+                              momentum=args.momentum,
+                              nesterov=True,
+                              **opt_args)
     elif opt_lower == 'momentum':
         del opt_args['eps']
-        optimizer = optim.SGD(parameters, momentum=args.momentum, nesterov=False, **opt_args)
+        optimizer = optim.SGD(parameters,
+                              momentum=args.momentum,
+                              nesterov=False,
+                              **opt_args)
     elif opt_lower == 'adam':
         optimizer = optim.Adam(parameters, **opt_args)
     elif opt_lower == 'adamw':
@@ -74,10 +86,13 @@ def create_optimizer(args, model, filter_bias_and_bn=True):
         optimizer = Nadam(parameters, **opt_args)
     elif opt_lower == 'radam':
         optimizer = RAdam(parameters, **opt_args)
-    elif opt_lower == 'adamp':        
+    elif opt_lower == 'adamp':
         optimizer = AdamP(parameters, wd_ratio=0.01, nesterov=True, **opt_args)
-    elif opt_lower == 'sgdp':        
-        optimizer = SGDP(parameters, momentum=args.momentum, nesterov=True, **opt_args)
+    elif opt_lower == 'sgdp':
+        optimizer = SGDP(parameters,
+                         momentum=args.momentum,
+                         nesterov=True,
+                         **opt_args)
     elif opt_lower == 'adadelta':
         optimizer = optim.Adadelta(parameters, **opt_args)
     elif opt_lower == 'adafactor':
@@ -87,19 +102,31 @@ def create_optimizer(args, model, filter_bias_and_bn=True):
     elif opt_lower == 'adahessian':
         optimizer = Adahessian(parameters, **opt_args)
     elif opt_lower == 'rmsprop':
-        optimizer = optim.RMSprop(parameters, alpha=0.9, momentum=args.momentum, **opt_args)
+        optimizer = optim.RMSprop(parameters,
+                                  alpha=0.9,
+                                  momentum=args.momentum,
+                                  **opt_args)
     elif opt_lower == 'rmsproptf':
-        optimizer = RMSpropTF(parameters, alpha=0.9, momentum=args.momentum, **opt_args)
+        optimizer = RMSpropTF(parameters,
+                              alpha=0.9,
+                              momentum=args.momentum,
+                              **opt_args)
     elif opt_lower == 'novograd':
         optimizer = NovoGrad(parameters, **opt_args)
     elif opt_lower == 'nvnovograd':
         optimizer = NvNovoGrad(parameters, **opt_args)
     elif opt_lower == 'fusedsgd':
         del opt_args['eps']
-        optimizer = FusedSGD(parameters, momentum=args.momentum, nesterov=True, **opt_args)
+        optimizer = FusedSGD(parameters,
+                             momentum=args.momentum,
+                             nesterov=True,
+                             **opt_args)
     elif opt_lower == 'fusedmomentum':
         del opt_args['eps']
-        optimizer = FusedSGD(parameters, momentum=args.momentum, nesterov=False, **opt_args)
+        optimizer = FusedSGD(parameters,
+                             momentum=args.momentum,
+                             nesterov=False,
+                             **opt_args)
     elif opt_lower == 'fusedadam':
         optimizer = FusedAdam(parameters, adam_w_mode=False, **opt_args)
     elif opt_lower == 'fusedadamw':

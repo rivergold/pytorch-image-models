@@ -26,35 +26,43 @@ __all__ = ['SelecSLS']  # model_registry will add each entrypoint fn to this
 def _cfg(url='', **kwargs):
     return {
         'url': url,
-        'num_classes': 1000, 'input_size': (3, 224, 224), 'pool_size': (4, 4),
-        'crop_pct': 0.875, 'interpolation': 'bilinear',
-        'mean': IMAGENET_DEFAULT_MEAN, 'std': IMAGENET_DEFAULT_STD,
-        'first_conv': 'stem.0', 'classifier': 'fc',
+        'num_classes': 1000,
+        'input_size': (3, 224, 224),
+        'pool_size': (4, 4),
+        'crop_pct': 0.875,
+        'interpolation': 'bilinear',
+        'mean': IMAGENET_DEFAULT_MEAN,
+        'std': IMAGENET_DEFAULT_STD,
+        'first_conv': 'stem.0',
+        'classifier': 'fc',
         **kwargs
     }
 
 
 default_cfgs = {
-    'selecsls42': _cfg(
-        url='',
+    'selecsls42':
+    _cfg(url='', interpolation='bicubic'),
+    'selecsls42b':
+    _cfg(
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-selecsls/selecsls42b-8af30141.pth',
         interpolation='bicubic'),
-    'selecsls42b': _cfg(
-        url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-selecsls/selecsls42b-8af30141.pth',
+    'selecsls60':
+    _cfg(
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-selecsls/selecsls60-bbf87526.pth',
         interpolation='bicubic'),
-    'selecsls60': _cfg(
-        url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-selecsls/selecsls60-bbf87526.pth',
+    'selecsls60b':
+    _cfg(
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-selecsls/selecsls60b-94e619b5.pth',
         interpolation='bicubic'),
-    'selecsls60b': _cfg(
-        url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-selecsls/selecsls60b-94e619b5.pth',
-        interpolation='bicubic'),
-    'selecsls84': _cfg(
-        url='',
-        interpolation='bicubic'),
+    'selecsls84':
+    _cfg(url='', interpolation='bicubic'),
 }
 
 
 class SequentialList(nn.Sequential):
-
     def __init__(self, *args):
         super(SequentialList, self).__init__(*args)
 
@@ -101,14 +109,24 @@ def conv_bn(in_chs, out_chs, k=3, stride=1, padding=None, dilation=1):
     if padding is None:
         padding = ((stride - 1) + dilation * (k - 1)) // 2
     return nn.Sequential(
-        nn.Conv2d(in_chs, out_chs, k, stride, padding=padding, dilation=dilation, bias=False),
-        nn.BatchNorm2d(out_chs),
-        nn.ReLU(inplace=True)
-    )
+        nn.Conv2d(in_chs,
+                  out_chs,
+                  k,
+                  stride,
+                  padding=padding,
+                  dilation=dilation,
+                  bias=False), nn.BatchNorm2d(out_chs), nn.ReLU(inplace=True))
 
 
 class SelecSLSBlock(nn.Module):
-    def __init__(self, in_chs, skip_chs, mid_chs, out_chs, is_first, stride, dilation=1):
+    def __init__(self,
+                 in_chs,
+                 skip_chs,
+                 mid_chs,
+                 out_chs,
+                 is_first,
+                 stride,
+                 dilation=1):
         super(SelecSLSBlock, self).__init__()
         self.stride = stride
         self.is_first = is_first
@@ -120,7 +138,8 @@ class SelecSLSBlock(nn.Module):
         self.conv3 = conv_bn(mid_chs, mid_chs // 2, 3)
         self.conv4 = conv_bn(mid_chs // 2, mid_chs, 1)
         self.conv5 = conv_bn(mid_chs, mid_chs // 2, 3)
-        self.conv6 = conv_bn(2 * mid_chs + (0 if is_first else skip_chs), out_chs, 1)
+        self.conv6 = conv_bn(2 * mid_chs + (0 if is_first else skip_chs),
+                             out_chs, 1)
 
     def forward(self, x: List[torch.Tensor]) -> List[torch.Tensor]:
         if not isinstance(x, list):
@@ -152,24 +171,35 @@ class SelecSLS(nn.Module):
     global_pool : str, default 'avg'
         Global pooling type. One of 'avg', 'max', 'avgmax', 'catavgmax'
     """
-
-    def __init__(self, cfg, num_classes=1000, in_chans=3, drop_rate=0.0, global_pool='avg'):
+    def __init__(self,
+                 cfg,
+                 num_classes=1000,
+                 in_chans=3,
+                 drop_rate=0.0,
+                 global_pool='avg'):
         self.num_classes = num_classes
         self.drop_rate = drop_rate
         super(SelecSLS, self).__init__()
 
         self.stem = conv_bn(in_chans, 32, stride=2)
-        self.features = SequentialList(*[cfg['block'](*block_args) for block_args in cfg['features']])
-        self.from_seq = SelectSeq()  # from List[tensor] -> Tensor in module compatible way
-        self.head = nn.Sequential(*[conv_bn(*conv_args) for conv_args in cfg['head']])
+        self.features = SequentialList(
+            *[cfg['block'](*block_args) for block_args in cfg['features']])
+        self.from_seq = SelectSeq(
+        )  # from List[tensor] -> Tensor in module compatible way
+        self.head = nn.Sequential(
+            *[conv_bn(*conv_args) for conv_args in cfg['head']])
         self.num_features = cfg['num_features']
         self.feature_info = cfg['feature_info']
 
-        self.global_pool, self.fc = create_classifier(self.num_features, self.num_classes, pool_type=global_pool)
+        self.global_pool, self.fc = create_classifier(self.num_features,
+                                                      self.num_classes,
+                                                      pool_type=global_pool)
 
         for n, m in self.named_modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                nn.init.kaiming_normal_(m.weight,
+                                        mode='fan_out',
+                                        nonlinearity='relu')
             elif isinstance(m, nn.BatchNorm2d):
                 nn.init.constant_(m.weight, 1.)
                 nn.init.constant_(m.bias, 0.)
@@ -179,7 +209,9 @@ class SelecSLS(nn.Module):
 
     def reset_classifier(self, num_classes, global_pool='avg'):
         self.num_classes = num_classes
-        self.global_pool, self.fc = create_classifier(self.num_features, self.num_classes, pool_type=global_pool)
+        self.global_pool, self.fc = create_classifier(self.num_features,
+                                                      self.num_classes,
+                                                      pool_type=global_pool)
 
     def forward_features(self, x):
         x = self.stem(x)
@@ -225,7 +257,8 @@ def _create_selecsls(variant, pretrained, model_kwargs):
                 (1024, 1280, 3, 2),
                 (1280, 1024, 1, 1),
             ]
-            feature_info.append(dict(num_chs=1024, reduction=64, module='head.3'))
+            feature_info.append(
+                dict(num_chs=1024, reduction=64, module='head.3'))
             cfg['num_features'] = 1024
         else:
             cfg['head'] = [
@@ -234,7 +267,8 @@ def _create_selecsls(variant, pretrained, model_kwargs):
                 (1024, 1024, 3, 2),
                 (1024, 1280, 1, 1),
             ]
-            feature_info.append(dict(num_chs=1280, reduction=64, module='head.3'))
+            feature_info.append(
+                dict(num_chs=1280, reduction=64, module='head.3'))
             cfg['num_features'] = 1280
 
     elif variant.startswith('selecsls60'):
@@ -266,7 +300,8 @@ def _create_selecsls(variant, pretrained, model_kwargs):
                 (1024, 1280, 3, 2),
                 (1280, 1024, 1, 1),
             ]
-            feature_info.append(dict(num_chs=1024, reduction=64, module='head.3'))
+            feature_info.append(
+                dict(num_chs=1024, reduction=64, module='head.3'))
             cfg['num_features'] = 1024
         else:
             cfg['head'] = [
@@ -275,7 +310,8 @@ def _create_selecsls(variant, pretrained, model_kwargs):
                 (1024, 1024, 3, 2),
                 (1024, 1280, 1, 1),
             ]
-            feature_info.append(dict(num_chs=1280, reduction=64, module='head.3'))
+            feature_info.append(
+                dict(num_chs=1280, reduction=64, module='head.3'))
             cfg['num_features'] = 1280
 
     elif variant == 'selecsls84':
@@ -319,9 +355,14 @@ def _create_selecsls(variant, pretrained, model_kwargs):
     cfg['feature_info'] = feature_info
 
     # this model can do 6 feature levels by default, unlike most others, leave as 0-4 to avoid surprises?
-    return build_model_with_cfg(
-        SelecSLS, variant, pretrained, default_cfg=default_cfgs[variant], model_cfg=cfg,
-        feature_cfg=dict(out_indices=(0, 1, 2, 3, 4), flatten_sequential=True), **model_kwargs)
+    return build_model_with_cfg(SelecSLS,
+                                variant,
+                                pretrained,
+                                default_cfg=default_cfgs[variant],
+                                model_cfg=cfg,
+                                feature_cfg=dict(out_indices=(0, 1, 2, 3, 4),
+                                                 flatten_sequential=True),
+                                **model_kwargs)
 
 
 @register_model

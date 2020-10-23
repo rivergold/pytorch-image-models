@@ -39,7 +39,8 @@ class LightChannelAttn(ChannelAttn):
         super(LightChannelAttn, self).__init__(channels, reduction)
 
     def forward(self, x):
-        x_pool = 0.5 * x.mean((2, 3), keepdim=True) + 0.5 * F.adaptive_max_pool2d(x, 1)
+        x_pool = 0.5 * x.mean(
+            (2, 3), keepdim=True) + 0.5 * F.adaptive_max_pool2d(x, 1)
         x_attn = self.fc2(self.act(self.fc1(x_pool)))
         return x * x_attn.sigmoid()
 
@@ -96,4 +97,3 @@ class LightCbamModule(nn.Module):
         x = self.channel(x)
         x = self.spatial(x)
         return x
-

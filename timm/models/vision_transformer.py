@@ -38,46 +38,72 @@ from .registry import register_model
 def _cfg(url='', **kwargs):
     return {
         'url': url,
-        'num_classes': 1000, 'input_size': (3, 224, 224), 'pool_size': None,
-        'crop_pct': .9, 'interpolation': 'bicubic',
-        'mean': IMAGENET_DEFAULT_MEAN, 'std': IMAGENET_DEFAULT_STD,
-        'first_conv': '', 'classifier': 'head',
+        'num_classes': 1000,
+        'input_size': (3, 224, 224),
+        'pool_size': None,
+        'crop_pct': .9,
+        'interpolation': 'bicubic',
+        'mean': IMAGENET_DEFAULT_MEAN,
+        'std': IMAGENET_DEFAULT_STD,
+        'first_conv': '',
+        'classifier': 'head',
         **kwargs
     }
 
 
 default_cfgs = {
     # patch models
-    'vit_small_patch16_224': _cfg(
-        url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/vit_small_p16_224-15ec54c9.pth',
+    'vit_small_patch16_224':
+    _cfg(
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/vit_small_p16_224-15ec54c9.pth',
     ),
-    'vit_base_patch16_224': _cfg(
-        url='https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/vit_base_p16_224-4e355ebd.pth'
+    'vit_base_patch16_224':
+    _cfg(
+        url=
+        'https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-weights/vit_base_p16_224-4e355ebd.pth'
     ),
-    'vit_base_patch16_384': _cfg(input_size=(3, 384, 384)),
-    'vit_base_patch32_384': _cfg(input_size=(3, 384, 384)),
-    'vit_large_patch16_224': _cfg(),
-    'vit_large_patch16_384': _cfg(input_size=(3, 384, 384)),
-    'vit_large_patch32_384': _cfg(input_size=(3, 384, 384)),
-    'vit_huge_patch16_224': _cfg(),
-    'vit_huge_patch32_384': _cfg(input_size=(3, 384, 384)),
+    'vit_base_patch16_384':
+    _cfg(input_size=(3, 384, 384)),
+    'vit_base_patch32_384':
+    _cfg(input_size=(3, 384, 384)),
+    'vit_large_patch16_224':
+    _cfg(),
+    'vit_large_patch16_384':
+    _cfg(input_size=(3, 384, 384)),
+    'vit_large_patch32_384':
+    _cfg(input_size=(3, 384, 384)),
+    'vit_huge_patch16_224':
+    _cfg(),
+    'vit_huge_patch32_384':
+    _cfg(input_size=(3, 384, 384)),
     # hybrid models
-    'vit_small_resnet26d_224': _cfg(),
-    'vit_small_resnet50d_s3_224': _cfg(),
-    'vit_base_resnet26d_224': _cfg(),
-    'vit_base_resnet50d_224': _cfg(),
+    'vit_small_resnet26d_224':
+    _cfg(),
+    'vit_small_resnet50d_s3_224':
+    _cfg(),
+    'vit_base_resnet26d_224':
+    _cfg(),
+    'vit_base_resnet50d_224':
+    _cfg(),
 }
 
 
 class Mlp(nn.Module):
-    def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
+    def __init__(self,
+                 in_features,
+                 hidden_features=None,
+                 out_features=None,
+                 act_layer=nn.GELU,
+                 drop=0.):
         super().__init__()
         out_features = out_features or in_features
         hidden_features = hidden_features or in_features
         self.fc1 = nn.Linear(in_features, hidden_features)
         self.act = act_layer()
         self.fc2 = nn.Linear(hidden_features, out_features)
-        self.dropout = nn.Dropout(drop)  # seems more common to have Transformer MLP drouput here?
+        self.dropout = nn.Dropout(
+            drop)  # seems more common to have Transformer MLP drouput here?
 
     def forward(self, x):
         x = self.fc1(x)
@@ -90,7 +116,7 @@ class Mlp(nn.Module):
 class Attention(nn.Module):
     def __init__(self, dim, num_heads=8, attn_drop=0., proj_drop=0.):
         super().__init__()
-        self.scale = 1. / dim ** 0.5
+        self.scale = 1. / dim**0.5
         self.num_heads = num_heads
 
         self.qkv = nn.Linear(dim, dim * 3, bias=False)
@@ -101,7 +127,8 @@ class Attention(nn.Module):
     def forward(self, x, attn_mask=None):
         B, N, C = x.shape
         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads)
-        q, k, v = qkv[:, :, 0].transpose(1, 2), qkv[:, :, 1].transpose(1, 2), qkv[:, :, 2].transpose(1, 2)
+        q, k, v = qkv[:, :, 0].transpose(1, 2), qkv[:, :, 1].transpose(
+            1, 2), qkv[:, :, 2].transpose(1, 2)
 
         # TODO benchmark vs above
         #qkv = qkv.reshape(B, N, 3, self.num_heads, C // self.num_heads).permute(2, 0, 3, 1, 4)
@@ -119,16 +146,28 @@ class Attention(nn.Module):
 
 
 class Block(nn.Module):
-
-    def __init__(self, dim, num_heads, mlp_ratio=4., act_layer=nn.GELU, drop=0., drop_path=0.):
+    def __init__(self,
+                 dim,
+                 num_heads,
+                 mlp_ratio=4.,
+                 act_layer=nn.GELU,
+                 drop=0.,
+                 drop_path=0.):
         super().__init__()
         self.norm1 = nn.LayerNorm(dim)
-        self.attn = Attention(dim, num_heads=num_heads, attn_drop=drop, proj_drop=drop)
+        self.attn = Attention(dim,
+                              num_heads=num_heads,
+                              attn_drop=drop,
+                              proj_drop=drop)
         # NOTE: drop path for stochastic depth, we shall see if this is better than dropout here
-        self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
+        self.drop_path = DropPath(
+            drop_path) if drop_path > 0. else nn.Identity()
         self.norm2 = nn.LayerNorm(dim)
         mlp_hidden_dim = int(dim * mlp_ratio)
-        self.mlp = Mlp(in_features=dim, hidden_features=mlp_hidden_dim, act_layer=act_layer, drop=drop)
+        self.mlp = Mlp(in_features=dim,
+                       hidden_features=mlp_hidden_dim,
+                       act_layer=act_layer,
+                       drop=drop)
 
     def forward(self, x, attn_mask=None):
         x = x + self.drop_path(self.attn(self.norm1(x), attn_mask=attn_mask))
@@ -140,13 +179,21 @@ class PatchEmbed(nn.Module):
     """ Image to Patch Embedding
     Unfold image into fixed size patches, flatten into seq, project to embedding dim.
     """
-    def __init__(self, img_size=224, patch_size=16, in_chans=3, embed_dim=768, flatten_channels_last=False):
+    def __init__(self,
+                 img_size=224,
+                 patch_size=16,
+                 in_chans=3,
+                 embed_dim=768,
+                 flatten_channels_last=False):
         super().__init__()
         img_size = to_2tuple(img_size)
         patch_size = to_2tuple(patch_size)
-        assert img_size[0] % patch_size[0] == 0, 'image height must be divisible by the patch height'
-        assert img_size[1] % patch_size[1] == 0, 'image width must be divisible by the patch width'
-        num_patches = (img_size[1] // patch_size[1]) * (img_size[0] // patch_size[0])
+        assert img_size[0] % patch_size[
+            0] == 0, 'image height must be divisible by the patch height'
+        assert img_size[1] % patch_size[
+            1] == 0, 'image width must be divisible by the patch width'
+        num_patches = (img_size[1] // patch_size[1]) * (img_size[0] //
+                                                        patch_size[0])
         patch_dim = in_chans * patch_size[0] * patch_size[1]
         self.img_size = img_size
         self.patch_size = patch_size
@@ -162,9 +209,15 @@ class PatchEmbed(nn.Module):
             f"Input image size ({H}*{W}) doesn't match model ({self.img_size[0]}*{self.img_size[1]})."
         if self.flatten_channels_last:
             # flatten patches with channels last like the paper (likely using TF)
-            x = x.unfold(2, Ph, Ph).unfold(3, Pw, Pw).permute(0, 2, 3, 4, 5, 1).reshape(B, -1, Ph * Pw * C)
+            x = x.unfold(2, Ph,
+                         Ph).unfold(3, Pw,
+                                    Pw).permute(0, 2, 3, 4, 5,
+                                                1).reshape(B, -1, Ph * Pw * C)
         else:
-            x = x.permute(0, 2, 3, 1).unfold(1, Ph, Ph).unfold(2, Pw, Pw).reshape(B, -1, C * Ph * Pw)
+            x = x.permute(0, 2, 3,
+                          1).unfold(1, Ph,
+                                    Ph).unfold(2, Pw,
+                                               Pw).reshape(B, -1, C * Ph * Pw)
         x = self.proj(x)
         return x
 
@@ -173,7 +226,12 @@ class HybridEmbed(nn.Module):
     """ CNN Feature Map Embedding
     Extract feature map from CNN, flatten, project to embedding dim.
     """
-    def __init__(self, backbone, img_size=224, feature_size=None, in_chans=3, embed_dim=768):
+    def __init__(self,
+                 backbone,
+                 img_size=224,
+                 feature_size=None,
+                 in_chans=3,
+                 embed_dim=768):
         super().__init__()
         assert isinstance(backbone, nn.Module)
         img_size = to_2tuple(img_size)
@@ -187,7 +245,8 @@ class HybridEmbed(nn.Module):
                 training = backbone.training
                 if training:
                     backbone.eval()
-                o = self.backbone(torch.zeros(1, in_chans, img_size[0], img_size[1]))[-1]
+                o = self.backbone(
+                    torch.zeros(1, in_chans, img_size[0], img_size[1]))[-1]
                 feature_size = o.shape[-2:]
                 feature_dim = o.shape[1]
                 backbone.train(training)
@@ -207,26 +266,48 @@ class HybridEmbed(nn.Module):
 class VisionTransformer(nn.Module):
     """ Vision Transformer with support for patch or hybrid CNN input stage
     """
-    def __init__(self, img_size=224, patch_size=16, in_chans=3, num_classes=1000, embed_dim=768, depth=12,
-                 num_heads=12, mlp_ratio=4., mlp_head=False, drop_rate=0., drop_path_rate=0.,
-                 flatten_channels_last=False, hybrid_backbone=None):
+    def __init__(self,
+                 img_size=224,
+                 patch_size=16,
+                 in_chans=3,
+                 num_classes=1000,
+                 embed_dim=768,
+                 depth=12,
+                 num_heads=12,
+                 mlp_ratio=4.,
+                 mlp_head=False,
+                 drop_rate=0.,
+                 drop_path_rate=0.,
+                 flatten_channels_last=False,
+                 hybrid_backbone=None):
         super().__init__()
         if hybrid_backbone is not None:
-            self.patch_embed = HybridEmbed(
-                hybrid_backbone, img_size=img_size, in_chans=in_chans, embed_dim=embed_dim)
+            self.patch_embed = HybridEmbed(hybrid_backbone,
+                                           img_size=img_size,
+                                           in_chans=in_chans,
+                                           embed_dim=embed_dim)
         else:
             self.patch_embed = PatchEmbed(
-                img_size=img_size, patch_size=patch_size, in_chans=in_chans, embed_dim=embed_dim,
+                img_size=img_size,
+                patch_size=patch_size,
+                in_chans=in_chans,
+                embed_dim=embed_dim,
                 flatten_channels_last=flatten_channels_last)
         num_patches = self.patch_embed.num_patches
 
-        self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + 1, embed_dim))
+        self.pos_embed = nn.Parameter(
+            torch.zeros(1, num_patches + 1, embed_dim))
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
 
-        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]  # stochastic depth decay rule
+        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)
+               ]  # stochastic depth decay rule
         self.blocks = nn.ModuleList([
-            Block(dim=embed_dim, num_heads=num_heads, mlp_ratio=mlp_ratio, drop=drop_rate, drop_path=dpr[i])
-            for i in range(depth)])
+            Block(dim=embed_dim,
+                  num_heads=num_heads,
+                  mlp_ratio=mlp_ratio,
+                  drop=drop_rate,
+                  drop_path=dpr[i]) for i in range(depth)
+        ])
 
         self.norm = nn.LayerNorm(embed_dim)
         if mlp_head:
@@ -259,7 +340,8 @@ class VisionTransformer(nn.Module):
         B = x.shape[0]
         x = self.patch_embed(x)
 
-        cls_tokens = self.cls_token.expand(B, -1, -1)  # stole cls_tokens impl from Phil Wang, thanks
+        cls_tokens = self.cls_token.expand(
+            B, -1, -1)  # stole cls_tokens impl from Phil Wang, thanks
         x = torch.cat((cls_tokens, x), dim=1)
         x += self.pos_embed
 
@@ -273,115 +355,192 @@ class VisionTransformer(nn.Module):
 
 @register_model
 def vit_small_patch16_224(pretrained=False, **kwargs):
-    model = VisionTransformer(patch_size=16, embed_dim=768, depth=8, num_heads=8, mlp_ratio=3., **kwargs)
+    model = VisionTransformer(patch_size=16,
+                              embed_dim=768,
+                              depth=8,
+                              num_heads=8,
+                              mlp_ratio=3.,
+                              **kwargs)
     model.default_cfg = default_cfgs['vit_small_patch16_224']
     if pretrained:
-        load_pretrained(
-            model, num_classes=kwargs.get('num_classes', 0), in_chans=kwargs.get('in_chans', 3))
+        load_pretrained(model,
+                        num_classes=kwargs.get('num_classes', 0),
+                        in_chans=kwargs.get('in_chans', 3))
     return model
 
 
 @register_model
 def vit_base_patch16_224(pretrained=False, **kwargs):
-    model = VisionTransformer(patch_size=16, embed_dim=768, depth=12, num_heads=12, mlp_ratio=4, **kwargs)
+    model = VisionTransformer(patch_size=16,
+                              embed_dim=768,
+                              depth=12,
+                              num_heads=12,
+                              mlp_ratio=4,
+                              **kwargs)
     model.default_cfg = default_cfgs['vit_base_patch16_224']
     if pretrained:
-        load_pretrained(
-            model, num_classes=kwargs.get('num_classes', 0), in_chans=kwargs.get('in_chans', 3))
+        load_pretrained(model,
+                        num_classes=kwargs.get('num_classes', 0),
+                        in_chans=kwargs.get('in_chans', 3))
     return model
 
 
 @register_model
 def vit_base_patch16_384(pretrained=False, **kwargs):
-    model = VisionTransformer(
-        img_size=384, patch_size=16, embed_dim=768, depth=12, num_heads=12, mlp_ratio=4, **kwargs)
+    model = VisionTransformer(img_size=384,
+                              patch_size=16,
+                              embed_dim=768,
+                              depth=12,
+                              num_heads=12,
+                              mlp_ratio=4,
+                              **kwargs)
     model.default_cfg = default_cfgs['vit_base_patch16_384']
     return model
 
 
 @register_model
 def vit_base_patch32_384(pretrained=False, **kwargs):
-    model = VisionTransformer(
-        img_size=384, patch_size=32, embed_dim=768, depth=12, num_heads=12, mlp_ratio=4, **kwargs)
+    model = VisionTransformer(img_size=384,
+                              patch_size=32,
+                              embed_dim=768,
+                              depth=12,
+                              num_heads=12,
+                              mlp_ratio=4,
+                              **kwargs)
     model.default_cfg = default_cfgs['vit_base_patch32_384']
     return model
 
 
 @register_model
 def vit_large_patch16_224(pretrained=False, **kwargs):
-    model = VisionTransformer(patch_size=16, embed_dim=1024, depth=24, num_heads=16, mlp_ratio=4, **kwargs)
+    model = VisionTransformer(patch_size=16,
+                              embed_dim=1024,
+                              depth=24,
+                              num_heads=16,
+                              mlp_ratio=4,
+                              **kwargs)
     model.default_cfg = default_cfgs['vit_large_patch16_224']
     return model
 
 
 @register_model
 def vit_large_patch16_384(pretrained=False, **kwargs):
-    model = VisionTransformer(
-        img_size=384, patch_size=16, embed_dim=1024, depth=24, num_heads=16, mlp_ratio=4, **kwargs)
+    model = VisionTransformer(img_size=384,
+                              patch_size=16,
+                              embed_dim=1024,
+                              depth=24,
+                              num_heads=16,
+                              mlp_ratio=4,
+                              **kwargs)
     model.default_cfg = default_cfgs['vit_large_patch16_384']
     return model
 
 
 @register_model
 def vit_large_patch32_384(pretrained=False, **kwargs):
-    model = VisionTransformer(
-        img_size=384, patch_size=32, embed_dim=1024, depth=24, num_heads=16, mlp_ratio=4, **kwargs)
+    model = VisionTransformer(img_size=384,
+                              patch_size=32,
+                              embed_dim=1024,
+                              depth=24,
+                              num_heads=16,
+                              mlp_ratio=4,
+                              **kwargs)
     model.default_cfg = default_cfgs['vit_large_patch32_384']
     return model
 
 
 @register_model
 def vit_huge_patch16_224(pretrained=False, **kwargs):
-    model = VisionTransformer(patch_size=16, embed_dim=1280, depth=32, num_heads=16, mlp_ratio=4, **kwargs)
+    model = VisionTransformer(patch_size=16,
+                              embed_dim=1280,
+                              depth=32,
+                              num_heads=16,
+                              mlp_ratio=4,
+                              **kwargs)
     model.default_cfg = default_cfgs['vit_huge_patch16_224']
     return model
 
 
 @register_model
 def vit_huge_patch32_384(pretrained=False, **kwargs):
-    model = VisionTransformer(
-        img_size=384, patch_size=32, embed_dim=1280, depth=32, num_heads=16, mlp_ratio=4, **kwargs)
+    model = VisionTransformer(img_size=384,
+                              patch_size=32,
+                              embed_dim=1280,
+                              depth=32,
+                              num_heads=16,
+                              mlp_ratio=4,
+                              **kwargs)
     model.default_cfg = default_cfgs['vit_huge_patch32_384']
     return model
 
 
 @register_model
 def vit_small_resnet26d_224(pretrained=False, **kwargs):
-    pretrained_backbone = kwargs.get('pretrained_backbone', True)  # default to True for now, for testing
-    backbone = resnet26d(pretrained=pretrained_backbone, features_only=True, out_indices=[4])
-    model = VisionTransformer(
-        img_size=224, embed_dim=768, depth=8, num_heads=8, mlp_ratio=3, hybrid_backbone=backbone, **kwargs)
+    pretrained_backbone = kwargs.get(
+        'pretrained_backbone', True)  # default to True for now, for testing
+    backbone = resnet26d(pretrained=pretrained_backbone,
+                         features_only=True,
+                         out_indices=[4])
+    model = VisionTransformer(img_size=224,
+                              embed_dim=768,
+                              depth=8,
+                              num_heads=8,
+                              mlp_ratio=3,
+                              hybrid_backbone=backbone,
+                              **kwargs)
     model.default_cfg = default_cfgs['vit_small_resnet26d_224']
     return model
 
 
 @register_model
 def vit_small_resnet50d_s3_224(pretrained=False, **kwargs):
-    pretrained_backbone = kwargs.get('pretrained_backbone', True)  # default to True for now, for testing
-    backbone = resnet50d(pretrained=pretrained_backbone, features_only=True, out_indices=[3])
-    model = VisionTransformer(
-        img_size=224, embed_dim=768, depth=8, num_heads=8, mlp_ratio=3, hybrid_backbone=backbone, **kwargs)
+    pretrained_backbone = kwargs.get(
+        'pretrained_backbone', True)  # default to True for now, for testing
+    backbone = resnet50d(pretrained=pretrained_backbone,
+                         features_only=True,
+                         out_indices=[3])
+    model = VisionTransformer(img_size=224,
+                              embed_dim=768,
+                              depth=8,
+                              num_heads=8,
+                              mlp_ratio=3,
+                              hybrid_backbone=backbone,
+                              **kwargs)
     model.default_cfg = default_cfgs['vit_small_resnet50d_s3_224']
     return model
 
 
 @register_model
 def vit_base_resnet26d_224(pretrained=False, **kwargs):
-    pretrained_backbone = kwargs.get('pretrained_backbone', True)  # default to True for now, for testing
-    backbone = resnet26d(pretrained=pretrained_backbone, features_only=True, out_indices=[4])
-    model = VisionTransformer(
-        img_size=224, embed_dim=768, depth=12, num_heads=12, mlp_ratio=4, hybrid_backbone=backbone, **kwargs)
+    pretrained_backbone = kwargs.get(
+        'pretrained_backbone', True)  # default to True for now, for testing
+    backbone = resnet26d(pretrained=pretrained_backbone,
+                         features_only=True,
+                         out_indices=[4])
+    model = VisionTransformer(img_size=224,
+                              embed_dim=768,
+                              depth=12,
+                              num_heads=12,
+                              mlp_ratio=4,
+                              hybrid_backbone=backbone,
+                              **kwargs)
     model.default_cfg = default_cfgs['vit_base_resnet26d_224']
     return model
 
 
 @register_model
 def vit_base_resnet50d_224(pretrained=False, **kwargs):
-    pretrained_backbone = kwargs.get('pretrained_backbone', True)  # default to True for now, for testing
-    backbone = resnet50d(pretrained=pretrained_backbone, features_only=True, out_indices=[4])
-    model = VisionTransformer(
-        img_size=224, embed_dim=768, depth=12, num_heads=12, mlp_ratio=4, hybrid_backbone=backbone, **kwargs)
+    pretrained_backbone = kwargs.get(
+        'pretrained_backbone', True)  # default to True for now, for testing
+    backbone = resnet50d(pretrained=pretrained_backbone,
+                         features_only=True,
+                         out_indices=[4])
+    model = VisionTransformer(img_size=224,
+                              embed_dim=768,
+                              depth=12,
+                              num_heads=12,
+                              mlp_ratio=4,
+                              hybrid_backbone=backbone,
+                              **kwargs)
     model.default_cfg = default_cfgs['vit_base_resnet50d_224']
     return model
-
-

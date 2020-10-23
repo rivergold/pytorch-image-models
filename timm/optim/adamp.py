@@ -13,11 +13,24 @@ import torch.nn as nn
 from torch.optim.optimizer import Optimizer, required
 import math
 
+
 class AdamP(Optimizer):
-    def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8,
-                 weight_decay=0, delta=0.1, wd_ratio=0.1, nesterov=False):
-        defaults = dict(lr=lr, betas=betas, eps=eps, weight_decay=weight_decay,
-                        delta=delta, wd_ratio=wd_ratio, nesterov=nesterov)
+    def __init__(self,
+                 params,
+                 lr=1e-3,
+                 betas=(0.9, 0.999),
+                 eps=1e-8,
+                 weight_decay=0,
+                 delta=0.1,
+                 wd_ratio=0.1,
+                 nesterov=False):
+        defaults = dict(lr=lr,
+                        betas=betas,
+                        eps=eps,
+                        weight_decay=weight_decay,
+                        delta=delta,
+                        wd_ratio=wd_ratio,
+                        nesterov=nesterov)
         super(AdamP, self).__init__(params, defaults)
 
     def _channel_view(self, x):
@@ -44,8 +57,10 @@ class AdamP(Optimizer):
             cosine_sim = self._cosine_similarity(grad, p.data, eps, view_func)
 
             if cosine_sim.max() < delta / math.sqrt(view_func(p.data).size(1)):
-                p_n = p.data / view_func(p.data).norm(dim=1).view(expand_size).add_(eps)
-                perturb -= p_n * view_func(p_n * perturb).sum(dim=1).view(expand_size)
+                p_n = p.data / view_func(
+                    p.data).norm(dim=1).view(expand_size).add_(eps)
+                perturb -= p_n * view_func(
+                    p_n * perturb).sum(dim=1).view(expand_size)
                 wd = wd_ratio
 
                 return perturb, wd
@@ -78,13 +93,14 @@ class AdamP(Optimizer):
                 exp_avg, exp_avg_sq = state['exp_avg'], state['exp_avg_sq']
 
                 state['step'] += 1
-                bias_correction1 = 1 - beta1 ** state['step']
-                bias_correction2 = 1 - beta2 ** state['step']
+                bias_correction1 = 1 - beta1**state['step']
+                bias_correction2 = 1 - beta2**state['step']
 
                 exp_avg.mul_(beta1).add_(1 - beta1, grad)
                 exp_avg_sq.mul_(beta2).addcmul_(1 - beta2, grad, grad)
 
-                denom = (exp_avg_sq.sqrt() / math.sqrt(bias_correction2)).add_(group['eps'])
+                denom = (exp_avg_sq.sqrt() / math.sqrt(bias_correction2)).add_(
+                    group['eps'])
                 step_size = group['lr'] / bias_correction1
 
                 if nesterov:
@@ -95,11 +111,14 @@ class AdamP(Optimizer):
                 # Projection
                 wd_ratio = 1
                 if len(p.shape) > 1:
-                    perturb, wd_ratio = self._projection(p, grad, perturb, group['delta'], group['wd_ratio'], group['eps'])
+                    perturb, wd_ratio = self._projection(
+                        p, grad, perturb, group['delta'], group['wd_ratio'],
+                        group['eps'])
 
                 # Weight decay
                 if group['weight_decay'] > 0:
-                    p.data.mul_(1 - group['lr'] * group['weight_decay'] * wd_ratio)
+                    p.data.mul_(1 -
+                                group['lr'] * group['weight_decay'] * wd_ratio)
 
                 # Step
                 p.data.add_(-step_size, perturb)

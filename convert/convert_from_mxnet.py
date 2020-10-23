@@ -8,7 +8,10 @@ import torch
 from timm import create_model
 
 parser = argparse.ArgumentParser(description='Convert from MXNet')
-parser.add_argument('--model', default='all', type=str, metavar='MODEL',
+parser.add_argument('--model',
+                    default='all',
+                    type=str,
+                    metavar='MODEL',
                     help='Name of model to train (default: "all"')
 
 
@@ -19,7 +22,8 @@ def convert(mxnet_name, torch_name):
     # create corresponding torch model
     torch_net = create_model(torch_name)
 
-    mxp = [(k, v) for k, v in net.collect_params().items() if 'running' not in k]
+    mxp = [(k, v) for k, v in net.collect_params().items()
+           if 'running' not in k]
     torchp = list(torch_net.named_parameters())
     torch_params = {}
 
@@ -46,8 +50,10 @@ def convert(mxnet_name, torch_name):
         torch_params[tn] = torch_tensor
 
     # convert buffers (batch norm running stats)
-    mxb = [(k, v) for k, v in net.collect_params().items() if any(x in k for x in ['running_mean', 'running_var'])]
-    torchb = [(k, v) for k, v in torch_net.named_buffers() if 'num_batches' not in k]
+    mxb = [(k, v) for k, v in net.collect_params().items()
+           if any(x in k for x in ['running_mean', 'running_var'])]
+    torchb = [(k, v) for k, v in torch_net.named_buffers()
+              if 'num_batches' not in k]
     for (tn, tv), (mn, mv) in zip(torchb, mxb):
         print(tn, mn)
         print(tv.shape, mv.shape)
@@ -57,7 +63,7 @@ def convert(mxnet_name, torch_name):
             assert 'running_var' in mn
         if 'running_mean' in tn:
             assert 'running_mean' in mn
-            
+
         torch_tensor = torch.from_numpy(mv.data().asnumpy())
         torch_params[tn] = torch_tensor
 
@@ -66,9 +72,11 @@ def convert(mxnet_name, torch_name):
     torch.save(torch_net.state_dict(), torch_filename)
     with open(torch_filename, 'rb') as f:
         sha_hash = hashlib.sha256(f.read()).hexdigest()
-    final_filename = os.path.splitext(torch_filename)[0] + '-' + sha_hash[:8] + '.pth'
+    final_filename = os.path.splitext(
+        torch_filename)[0] + '-' + sha_hash[:8] + '.pth'
     os.rename(torch_filename, final_filename)
-    print("=> Saved converted model to '{}, SHA256: {}'".format(final_filename, sha_hash))
+    print("=> Saved converted model to '{}, SHA256: {}'".format(
+        final_filename, sha_hash))
 
 
 def map_mx_to_torch_model(mx_name):
@@ -83,11 +91,31 @@ def map_mx_to_torch_model(mx_name):
     return torch_name
 
 
-ALL = ['resnet18_v1b', 'resnet34_v1b', 'resnet50_v1b', 'resnet101_v1b', 'resnet152_v1b',
-       'resnet50_v1c', 'resnet101_v1c', 'resnet152_v1c', 'resnet50_v1d', 'resnet101_v1d', 'resnet152_v1d',
-       #'resnet50_v1e', 'resnet101_v1e', 'resnet152_v1e',
-       'resnet50_v1s', 'resnet101_v1s', 'resnet152_v1s', 'resnext50_32x4d', 'resnext101_32x4d', 'resnext101_64x4d',
-       'se_resnext50_32x4d', 'se_resnext101_32x4d', 'se_resnext101_64x4d', 'senet_154', 'inceptionv3']
+ALL = [
+    'resnet18_v1b',
+    'resnet34_v1b',
+    'resnet50_v1b',
+    'resnet101_v1b',
+    'resnet152_v1b',
+    'resnet50_v1c',
+    'resnet101_v1c',
+    'resnet152_v1c',
+    'resnet50_v1d',
+    'resnet101_v1d',
+    'resnet152_v1d',
+    #'resnet50_v1e', 'resnet101_v1e', 'resnet152_v1e',
+    'resnet50_v1s',
+    'resnet101_v1s',
+    'resnet152_v1s',
+    'resnext50_32x4d',
+    'resnext101_32x4d',
+    'resnext101_64x4d',
+    'se_resnext50_32x4d',
+    'se_resnext101_32x4d',
+    'se_resnext101_64x4d',
+    'senet_154',
+    'inceptionv3'
+]
 
 
 def main():

@@ -15,14 +15,27 @@ import shutil
 from collections import OrderedDict
 
 parser = argparse.ArgumentParser(description='PyTorch Checkpoint Cleaner')
-parser.add_argument('--checkpoint', default='', type=str, metavar='PATH',
+parser.add_argument('--checkpoint',
+                    default='',
+                    type=str,
+                    metavar='PATH',
                     help='path to latest checkpoint (default: none)')
-parser.add_argument('--output', default='', type=str, metavar='PATH',
+parser.add_argument('--output',
+                    default='',
+                    type=str,
+                    metavar='PATH',
                     help='output path')
-parser.add_argument('--use-ema', dest='use_ema', action='store_true',
+parser.add_argument('--use-ema',
+                    dest='use_ema',
+                    action='store_true',
                     help='use ema version of weights if present')
-parser.add_argument('--clean-aux-bn', dest='clean_aux_bn', action='store_true',
-                    help='remove auxiliary batch norm layers (from SplitBN training) from checkpoint')
+parser.add_argument(
+    '--clean-aux-bn',
+    dest='clean_aux_bn',
+    action='store_true',
+    help=
+    'remove auxiliary batch norm layers (from SplitBN training) from checkpoint'
+)
 
 _TEMP_NAME = './_checkpoint.pth'
 
@@ -31,7 +44,8 @@ def main():
     args = parser.parse_args()
 
     if os.path.exists(args.output):
-        print("Error: Output filename ({}) already exists.".format(args.output))
+        print("Error: Output filename ({}) already exists.".format(
+            args.output))
         exit(1)
 
     # Load an existing checkpoint to CPU, strip everything but the state_dict and re-save
@@ -58,7 +72,9 @@ def main():
         print("=> Loaded state_dict from '{}'".format(args.checkpoint))
 
         try:
-            torch.save(new_state_dict, _TEMP_NAME, _use_new_zipfile_serialization=False)
+            torch.save(new_state_dict,
+                       _TEMP_NAME,
+                       _use_new_zipfile_serialization=False)
         except:
             torch.save(new_state_dict, _TEMP_NAME)
 
@@ -73,7 +89,8 @@ def main():
             checkpoint_base = os.path.splitext(args.checkpoint)[0]
         final_filename = '-'.join([checkpoint_base, sha_hash[:8]]) + '.pth'
         shutil.move(_TEMP_NAME, os.path.join(checkpoint_root, final_filename))
-        print("=> Saved state_dict to '{}, SHA256: {}'".format(final_filename, sha_hash))
+        print("=> Saved state_dict to '{}, SHA256: {}'".format(
+            final_filename, sha_hash))
     else:
         print("Error: Checkpoint ({}) doesn't exist".format(args.checkpoint))
 

@@ -24,7 +24,6 @@ from PIL import Image, ImageOps, ImageEnhance, ImageChops
 import PIL
 import numpy as np
 
-
 _PIL_VER = tuple([int(x) for x in PIL.__version__.split('.')[:2]])
 
 _FILL = (128, 128, 128)
@@ -57,34 +56,40 @@ def _check_args_tf(kwargs):
 
 def shear_x(img, factor, **kwargs):
     _check_args_tf(kwargs)
-    return img.transform(img.size, Image.AFFINE, (1, factor, 0, 0, 1, 0), **kwargs)
+    return img.transform(img.size, Image.AFFINE, (1, factor, 0, 0, 1, 0),
+                         **kwargs)
 
 
 def shear_y(img, factor, **kwargs):
     _check_args_tf(kwargs)
-    return img.transform(img.size, Image.AFFINE, (1, 0, 0, factor, 1, 0), **kwargs)
+    return img.transform(img.size, Image.AFFINE, (1, 0, 0, factor, 1, 0),
+                         **kwargs)
 
 
 def translate_x_rel(img, pct, **kwargs):
     pixels = pct * img.size[0]
     _check_args_tf(kwargs)
-    return img.transform(img.size, Image.AFFINE, (1, 0, pixels, 0, 1, 0), **kwargs)
+    return img.transform(img.size, Image.AFFINE, (1, 0, pixels, 0, 1, 0),
+                         **kwargs)
 
 
 def translate_y_rel(img, pct, **kwargs):
     pixels = pct * img.size[1]
     _check_args_tf(kwargs)
-    return img.transform(img.size, Image.AFFINE, (1, 0, 0, 0, 1, pixels), **kwargs)
+    return img.transform(img.size, Image.AFFINE, (1, 0, 0, 0, 1, pixels),
+                         **kwargs)
 
 
 def translate_x_abs(img, pixels, **kwargs):
     _check_args_tf(kwargs)
-    return img.transform(img.size, Image.AFFINE, (1, 0, pixels, 0, 1, 0), **kwargs)
+    return img.transform(img.size, Image.AFFINE, (1, 0, pixels, 0, 1, 0),
+                         **kwargs)
 
 
 def translate_y_abs(img, pixels, **kwargs):
     _check_args_tf(kwargs)
-    return img.transform(img.size, Image.AFFINE, (1, 0, 0, 0, 1, pixels), **kwargs)
+    return img.transform(img.size, Image.AFFINE, (1, 0, 0, 0, 1, pixels),
+                         **kwargs)
 
 
 def rotate(img, degrees, **kwargs):
@@ -109,9 +114,9 @@ def rotate(img, degrees, **kwargs):
             (a, b, c, d, e, f) = matrix
             return a * x + b * y + c, d * x + e * y + f
 
-        matrix[2], matrix[5] = transform(
-            -rotn_center[0] - post_trans[0], -rotn_center[1] - post_trans[1], matrix
-        )
+        matrix[2], matrix[5] = transform(-rotn_center[0] - post_trans[0],
+                                         -rotn_center[1] - post_trans[1],
+                                         matrix)
         matrix[2] += rotn_center[0]
         matrix[5] += rotn_center[1]
         return img.transform(img.size, Image.AFFINE, matrix, **kwargs)
@@ -285,7 +290,6 @@ LEVEL_TO_ARG = {
     'TranslateYRel': _translate_rel_level_to_arg,
 }
 
-
 NAME_TO_OP = {
     'AutoContrast': auto_contrast,
     'Equalize': equalize,
@@ -315,7 +319,6 @@ NAME_TO_OP = {
 
 
 class AugmentOp:
-
     def __init__(self, name, prob=0.5, magnitude=10, hparams=None):
         hparams = hparams or _HPARAMS_DEFAULT
         self.aug_fn = NAME_TO_OP[name]
@@ -325,7 +328,8 @@ class AugmentOp:
         self.hparams = hparams.copy()
         self.kwargs = dict(
             fillcolor=hparams['img_mean'] if 'img_mean' in hparams else _FILL,
-            resample=hparams['interpolation'] if 'interpolation' in hparams else _RANDOM_INTERPOLATION,
+            resample=hparams['interpolation']
+            if 'interpolation' in hparams else _RANDOM_INTERPOLATION,
         )
 
         # If magnitude_std is > 0, we introduce some randomness
@@ -341,7 +345,8 @@ class AugmentOp:
         if self.magnitude_std and self.magnitude_std > 0:
             magnitude = random.gauss(magnitude, self.magnitude_std)
         magnitude = min(_MAX_LEVEL, max(0, magnitude))  # clip to valid range
-        level_args = self.level_fn(magnitude, self.hparams) if self.level_fn is not None else tuple()
+        level_args = self.level_fn(
+            magnitude, self.hparams) if self.level_fn is not None else tuple()
         return self.aug_fn(img, *level_args, **self.kwargs)
 
 
@@ -370,7 +375,8 @@ def auto_augment_policy_v0(hparams):
         [('Equalize', 0.8, 4), ('Equalize', 0.0, 8)],
         [('Equalize', 1.0, 4), ('AutoContrast', 0.6, 2)],
         [('ShearY', 0.4, 7), ('SolarizeAdd', 0.6, 7)],
-        [('Posterize', 0.8, 2), ('Solarize', 0.6, 10)],  # This results in black image with Tpu posterize
+        [('Posterize', 0.8, 2), ('Solarize', 0.6, 10)
+         ],  # This results in black image with Tpu posterize
         [('Solarize', 0.6, 8), ('Equalize', 0.6, 1)],
         [('Color', 0.8, 6), ('Rotate', 0.4, 5)],
     ]
@@ -493,7 +499,6 @@ def auto_augment_policy(name='v0', hparams=None):
 
 
 class AutoAugment:
-
     def __init__(self, policy):
         self.policy = policy
 
@@ -554,7 +559,6 @@ _RAND_TRANSFORMS = [
     #'Cutout'  # NOTE I've implement this as random erasing separately
 ]
 
-
 _RAND_INCREASING_TRANSFORMS = [
     'AutoContrast',
     'Equalize',
@@ -573,8 +577,6 @@ _RAND_INCREASING_TRANSFORMS = [
     'TranslateYRel',
     #'Cutout'  # NOTE I've implement this as random erasing separately
 ]
-
-
 
 # These experimental weights are based loosely on the relative improvements mentioned in paper.
 # They may not result in increased performance, but could likely be tuned to so.
@@ -609,8 +611,10 @@ def _select_rand_weights(weight_idx=0, transforms=None):
 def rand_augment_ops(magnitude=10, hparams=None, transforms=None):
     hparams = hparams or _HPARAMS_DEFAULT
     transforms = transforms or _RAND_TRANSFORMS
-    return [AugmentOp(
-        name, prob=0.5, magnitude=magnitude, hparams=hparams) for name in transforms]
+    return [
+        AugmentOp(name, prob=0.5, magnitude=magnitude, hparams=hparams)
+        for name in transforms
+    ]
 
 
 class RandAugment:
@@ -621,8 +625,10 @@ class RandAugment:
 
     def __call__(self, img):
         # no replacement when using weighted choice
-        ops = np.random.choice(
-            self.ops, self.num_layers, replace=self.choice_weights is None, p=self.choice_weights)
+        ops = np.random.choice(self.ops,
+                               self.num_layers,
+                               replace=self.choice_weights is None,
+                               p=self.choice_weights)
         for op in ops:
             img = op(img)
         return img
@@ -673,8 +679,11 @@ def rand_augment_transform(config_str, hparams):
             weight_idx = int(val)
         else:
             assert False, 'Unknown RandAugment config section'
-    ra_ops = rand_augment_ops(magnitude=magnitude, hparams=hparams, transforms=transforms)
-    choice_weights = None if weight_idx is None else _select_rand_weights(weight_idx)
+    ra_ops = rand_augment_ops(magnitude=magnitude,
+                              hparams=hparams,
+                              transforms=transforms)
+    choice_weights = None if weight_idx is None else _select_rand_weights(
+        weight_idx)
     return RandAugment(ra_ops, num_layers, choice_weights=choice_weights)
 
 
@@ -698,8 +707,10 @@ _AUGMIX_TRANSFORMS = [
 def augmix_ops(magnitude=10, hparams=None, transforms=None):
     hparams = hparams or _HPARAMS_DEFAULT
     transforms = transforms or _AUGMIX_TRANSFORMS
-    return [AugmentOp(
-        name, prob=1.0, magnitude=magnitude, hparams=hparams) for name in transforms]
+    return [
+        AugmentOp(name, prob=1.0, magnitude=magnitude, hparams=hparams)
+        for name in transforms
+    ]
 
 
 class AugMixAugment:
@@ -759,7 +770,8 @@ class AugMixAugment:
         return Image.blend(img, mixed, m)
 
     def __call__(self, img):
-        mixing_weights = np.float32(np.random.dirichlet([self.alpha] * self.width))
+        mixing_weights = np.float32(
+            np.random.dirichlet([self.alpha] * self.width))
         m = np.float32(np.random.beta(self.alpha, self.alpha))
         if self.blended:
             mixed = self._apply_blended(img, mixing_weights, m)
@@ -814,4 +826,8 @@ def augment_and_mix_transform(config_str, hparams):
         else:
             assert False, 'Unknown AugMix config section'
     ops = augmix_ops(magnitude=magnitude, hparams=hparams)
-    return AugMixAugment(ops, alpha=alpha, width=width, depth=depth, blended=blended)
+    return AugMixAugment(ops,
+                         alpha=alpha,
+                         width=width,
+                         depth=depth,
+                         blended=blended)
