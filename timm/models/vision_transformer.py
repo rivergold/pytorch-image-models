@@ -214,6 +214,7 @@ class PatchEmbed(nn.Module):
                                     Pw).permute(0, 2, 3, 4, 5,
                                                 1).reshape(B, -1, Ph * Pw * C)
         else:
+            # @rivergold: [N, C, H, W] -> [N, H, W, C] -> unfold D=H -> unfold D=W
             x = x.permute(0, 2, 3,
                           1).unfold(1, Ph,
                                     Ph).unfold(2, Pw,
